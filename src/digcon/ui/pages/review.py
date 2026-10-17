@@ -8,7 +8,7 @@ from digcon.domain.enums import ElementSource, RuleElementState
 from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
 
-from .. import api_mode, renderer, state
+from .. import renderer, state
 
 
 def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
@@ -50,10 +50,8 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     ]
     if suggested:
         with st.container(border=True):
-            st.markdown(f"**{len(suggested)} checks were filled automatically.** Review them below "
-                        "(each shows its reason), or confirm them all at once.")
-            st.button(f"Confirm all {len(suggested)}", key="api.ok.all", type="primary", icon=":material/done_all:",
-                      on_click=api_mode.confirm_all, args=(suggested,))
+            st.markdown(f"**{len(suggested)} checks were filled automatically.** Each one must be checked: "
+                        "confirm or clear it below (its reason is shown under it).")
     to_verify = {f.rule_id for f in result.verification_requests}
     for spec in cfg.rules.rules:
         manual = [e for e in spec.encoding.elements if e.source is ElementSource.MANUAL]

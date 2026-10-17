@@ -199,11 +199,6 @@ def confirm(element_id: str) -> None:
     note_person_change(element_id)
 
 
-def confirm_all(element_ids: list[str]) -> None:
-    for eid in element_ids:
-        confirm(eid)
-
-
 def clear(element_id: str) -> None:
     """A person discards the API's value: back to not evaluated, and the API does not fill it again."""
     state.store()["elements"].pop(element_id, None)

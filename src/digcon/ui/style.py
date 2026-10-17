@@ -80,6 +80,11 @@ hr.digcon-rule { border: none; border-top: 1px solid #E4E9F0; margin: 0.9rem 0 0
 /* Routing: the active route */
 .st-key-route_active { background: #E8EFFC; border: 1px solid #B9CCF5; border-radius: 8px; padding: 0.6rem 0.8rem; }
 
+/* Confirm on a check set by the API: light green, same weight as the other buttons */
+[class*="st-key-api-ok-"] button { background: #E8F4EE; color: #1F7A4D; border: 1px solid #B9DCC8; }
+[class*="st-key-api-ok-"] button:hover { background: #D6ECDF; color: #14532D; border-color: #8FC6A6; }
+[class*="st-key-api-ok-"] button p, [class*="st-key-api-ok-"] button span { color: inherit; }
+
 /* Outcome banner */
 .digcon-outcome { border-radius: 8px; padding: 1.1rem 1.25rem; margin: 0.2rem 0 0.6rem 0; }
 .digcon-outcome .ttl { font-size: 1.45rem; font-weight: 650; margin: 0.15rem 0 0.35rem 0; }

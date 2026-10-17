@@ -161,14 +161,3 @@ def test_clear_returns_to_not_evaluated_and_is_not_refilled(fake):
     calls = fake.calls
     at.run()
     assert eid not in at.session_state[ui_state.STORE]["elements"] and fake.calls == calls
-
-
-def test_confirm_all(fake):
-    at = app(SECRETS, CODE)
-    n = len(api_elements(at))
-    assert n > 1
-    at.button(key="api.ok.all").click().run()
-    assert not api_elements(at)
-    confirmed = [r for r in at.session_state[ui_state.STORE]["elements"].values()
-                 if (r.get("provenance") or "").endswith("confirmed by a person")]
-    assert len(confirmed) == n
