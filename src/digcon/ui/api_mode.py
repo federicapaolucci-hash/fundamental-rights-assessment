@@ -186,23 +186,44 @@ def _refresh(cfg: ConfigBundle) -> bool:
     return bool(evaluations)
 
 
+CONFIRMED = "; confirmed by a person"
+
+
+def confirm(element_id: str) -> None:
+    """A person accepts the API's value: it becomes theirs (source MANUAL), the provenance keeps the origin."""
+    rec = state.store()["elements"].get(element_id)
+    if not rec or rec.get("source") != ElementSource.API.value:
+        return
+    rec["source"] = ElementSource.MANUAL.value
+    rec["provenance"] = (rec.get("provenance") or "") + CONFIRMED
+    note_person_change(element_id)
+
+
+def confirm_all(element_ids: list[str]) -> None:
+    for eid in element_ids:
+        confirm(eid)
+
+
+def clear(element_id: str) -> None:
+    """A person discards the API's value: back to not evaluated, and the API does not fill it again."""
+    state.store()["elements"].pop(element_id, None)
+    st.session_state.pop(f"w.{element_id}", None)
+    note_person_change(element_id)
+
+
 def note_person_change(element_id: str) -> None:
     """A person set or cleared this check: the API does not fill it again in this session."""
     st.session_state.setdefault(DISMISSED, set()).add(element_id)
 
 
 def notice() -> None:
-    """One line for 3.3 / 4.1 in API mode: what the API did, what is left today."""
+    """On 3.3 / 4.1, a short note only when the API could not do its job (the tool otherwise looks as usual)."""
     if not active():
         return
-    status = st.session_state.get(STATUS)
-    parts = [":blue-badge[:material/smart_toy: API mode] Reviewer checks are filled by the API (OpenAI, EU) "
-             "when this page opens; any value you set yourself wins."]
-    if status and status.get("error"):
-        parts.append(f"The API could not be used ({status['error']}): the checks stay to be verified.")
-    elif status:
-        parts.append(f"Last check: {status['set']} values set on {status['rules']} rules"
-                     + (f", {status['failed']} calls failed (those checks stay to be verified)" if status["failed"] else "")
-                     + (". Daily API limit reached: the rest stays to be verified" if status["limit"] else "") + ".")
-    parts.append(f"{remaining_today()} API calls left today.")
-    st.caption(" ".join(parts))
+    status = st.session_state.get(STATUS) or {}
+    if status.get("error"):
+        st.caption(f"Some checks could not be read automatically ({status['error']}): they stay to be verified.")
+    elif status.get("limit"):
+        st.caption("The daily limit for automatic checks is reached: the remaining checks stay to be verified.")
+    elif status.get("failed"):
+        st.caption(f"{status['failed']} automatic checks failed: those checks stay to be verified.")

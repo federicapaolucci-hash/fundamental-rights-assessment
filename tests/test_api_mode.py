@@ -85,7 +85,7 @@ def test_without_the_private_link_and_the_switch_the_tool_stays_deterministic(fa
     assert not at.exception, [e.message for e in at.exception]
     assert fake.calls == 0
     assert not api_elements(at)
-    assert "API mode" not in page_text(at)
+    assert "Set by API" not in page_text(at)
 
 
 def test_the_private_link_fills_reviewer_checks_and_tags_them(fake):
@@ -96,7 +96,7 @@ def test_the_private_link_fills_reviewer_checks_and_tags_them(fake):
     assert not any(e.startswith("HS") for e in filled)  # hard stops stay human-only
     assert all("input " in v["provenance"] for v in filled.values())
     text = page_text(at)
-    assert "API mode" in text and "Set by API" in text and "fake reasoning" in text
+    assert "API mode" not in text and "Set by API" in text and "fake reasoning" in text
 
 
 def test_unchanged_answers_are_not_sent_again(fake):
@@ -123,7 +123,7 @@ def test_a_person_s_value_wins_and_a_cleared_value_is_not_refilled(fake):
 def test_the_daily_cap_limits_calls(fake):
     at = app({**SECRETS, "DIGCON_API_DAILY_CALLS": 2}, CODE)
     assert fake.calls == 2
-    assert "Daily API limit reached" in page_text(at)
+    assert "daily limit for automatic checks is reached" in page_text(at)
 
 
 def test_a_changed_answer_is_sent_again(fake):
@@ -137,3 +137,38 @@ def test_a_changed_answer_is_sent_again(fake):
     at.sidebar.button(key=f"nav.{RULES_TITLE}").click().run()
     assert fake.calls > before  # QUAL-01 reads C12: its checks are refreshed
     assert fake.calls - before < before  # but only the rules that read C12, not everything again
+
+
+def test_confirm_makes_the_value_the_person_s_and_keeps_its_origin(fake):
+    at = app(SECRETS, CODE)
+    eid = next(iter(api_elements(at)))
+    state_before = api_elements(at)[eid]["state"]
+    at.button(key=f"api.ok.{eid}").click().run()
+    rec = at.session_state[ui_state.STORE]["elements"][eid]
+    assert rec["state"] == state_before and rec["source"] == "MANUAL"
+    assert rec["provenance"].endswith("confirmed by a person")
+    assert "Suggested by the API, confirmed by you" in page_text(at)
+    calls = fake.calls
+    at.run()
+    assert at.session_state[ui_state.STORE]["elements"][eid]["source"] == "MANUAL" and fake.calls == calls
+
+
+def test_clear_returns_to_not_evaluated_and_is_not_refilled(fake):
+    at = app(SECRETS, CODE)
+    eid = next(iter(api_elements(at)))
+    at.button(key=f"api.clear.{eid}").click().run()
+    assert eid not in at.session_state[ui_state.STORE]["elements"]
+    calls = fake.calls
+    at.run()
+    assert eid not in at.session_state[ui_state.STORE]["elements"] and fake.calls == calls
+
+
+def test_confirm_all(fake):
+    at = app(SECRETS, CODE)
+    n = len(api_elements(at))
+    assert n > 1
+    at.button(key="api.ok.all").click().run()
+    assert not api_elements(at)
+    confirmed = [r for r in at.session_state[ui_state.STORE]["elements"].values()
+                 if (r.get("provenance") or "").endswith("confirmed by a person")]
+    assert len(confirmed) == n

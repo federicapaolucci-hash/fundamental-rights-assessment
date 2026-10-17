@@ -144,8 +144,6 @@ def _menu(cfg, steps: dict[str, list], res: EngineResult | None, marks: dict[str
     with st.sidebar:
         st.markdown('<p class="digcon-brand">DIGCON</p><p class="digcon-brand-sub">Fundamental Rights Assessment</p>',
                     unsafe_allow_html=True)
-        if api_mode.active():
-            st.markdown(":blue-badge[:material/smart_toy: API mode]")
         with st.container(border=True):
             if res is not None:
                 st.markdown(f":{OUTCOME_COLOUR[res.outcome]}-badge[{OUTCOME_TITLES[res.outcome]}]")

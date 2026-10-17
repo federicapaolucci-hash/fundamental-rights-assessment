@@ -8,7 +8,7 @@ from digcon.domain.enums import ElementSource, RuleElementState
 from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
 
-from .. import renderer, state
+from .. import api_mode, renderer, state
 
 
 def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
@@ -44,13 +44,24 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
         "Qualitative judgements the engine cannot draw from your answers: record them here. "
         "A check left as 'Not evaluated' is listed as to be verified and does not change the outcome."
     )
+    suggested = [
+        eid for eid, rec in state.store()["elements"].items()
+        if rec.get("source") == "API" and cfg.rule(eid.split(".", 1)[0]).family != "HS"
+    ]
+    if suggested:
+        with st.container(border=True):
+            st.markdown(f"**{len(suggested)} checks were filled automatically.** Review them below "
+                        "(each shows its reason), or confirm them all at once.")
+            st.button(f"Confirm all {len(suggested)}", key="api.ok.all", type="primary", icon=":material/done_all:",
+                      on_click=api_mode.confirm_all, args=(suggested,))
     to_verify = {f.rule_id for f in result.verification_requests}
     for spec in cfg.rules.rules:
         manual = [e for e in spec.encoding.elements if e.source is ElementSource.MANUAL]
         if spec.family == "HS" or not manual:
             continue
         mark = " · to be verified" if spec.id in to_verify else ""
-        with st.expander(f"{spec.id}{mark}"):
+        by_api = any(e.id in suggested for e in manual)
+        with st.expander(f"{spec.id}{mark}" + (" :blue-badge[Set by API]" if by_api else ""), expanded=by_api):
             st.caption(spec.trigger_text)
             for el in manual:
                 renderer.element(el)

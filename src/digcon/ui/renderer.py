@@ -170,8 +170,15 @@ def element(spec: RuleElementSpec, effective: str | None = None) -> None:
     )
     if stored and stored.get("source") == "API":
         cited = ", ".join(r.removeprefix("answer:") for r in stored.get("evidence_refs", [])) or "none"
-        st.markdown(f":blue-badge[:material/smart_toy: Set by API] :gray[{stored.get('rationale') or ''}]")
-        st.caption(f"Cited: {cited}. Choose a state yourself to replace it.")
+        st.markdown(f":blue-badge[Set by API] :gray[{stored.get('rationale') or ''}]")
+        st.caption(f"Cited: {cited}. Confirm it, clear it, or choose another state to replace it.")
+        with st.container(horizontal=True, gap="small"):
+            st.button("Confirm", key=f"api.ok.{spec.id}", icon=":material/check:", on_click=api_mode.confirm,
+                      args=(spec.id,), help="Keep this value as your own.")
+            st.button("Clear", key=f"api.clear.{spec.id}", icon=":material/close:", on_click=api_mode.clear,
+                      args=(spec.id,), help="Back to Not evaluated; it will not be filled automatically again.")
+    elif stored and (stored.get("provenance") or "").endswith(api_mode.CONFIRMED):
+        st.caption(":gray[Suggested by the API, confirmed by you.]")
 
 
 def _sync_gate(rule_id: str) -> None:
