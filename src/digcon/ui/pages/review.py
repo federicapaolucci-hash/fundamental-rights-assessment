@@ -9,6 +9,7 @@ from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
 
 from .. import renderer, state
+from ..labels import workbook_text
 
 
 def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
@@ -60,7 +61,7 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
         mark = " · to be verified" if spec.id in to_verify else ""
         by_api = any(e.id in suggested for e in manual)
         with st.expander(f"{spec.id}{mark}" + (" :blue-badge[Set by API]" if by_api else ""), expanded=by_api):
-            st.caption(spec.trigger_text)
+            st.caption(workbook_text(spec.id, "trigger_text", spec.trigger_text))
             for el in manual:
                 renderer.element(el)
 
@@ -70,7 +71,7 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     if not pending and not done:
         st.caption("No legal review pending outside the stop conditions (3.5).")
     for rid in pending + done:
-        st.markdown(f"**{rid}** — {cfg.rule(rid).flow_effect}")
+        st.markdown(f"**{rid}** — {workbook_text(rid, 'trigger_text', cfg.rule(rid).trigger_text)}")
         renderer.legal_gate(rid)
 
     scrutiny = sorted(r for r, rr in result.rules.items() if rr.fired and any(e.value == "SCRUTINY" for e in rr.effects))

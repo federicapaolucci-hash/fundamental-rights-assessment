@@ -125,6 +125,19 @@ def subsection(name: str) -> str:
     return SUBSECTIONS.get(name, name)
 
 
+# Workbook texts shown in the interface, reworded only where they carry internal jargon. Meaning unchanged.
+WORKBOOK_TEXT = {
+    ("SEP00", "activation"): "Assess after affected persons/groups and material harm context are identified; "
+                             "C55 is evidence, not a precondition.",
+    ("RSEL-01", "trigger_text"): "A question, rule or evidence identifies a harm, affected right/area or material "
+                                 "contextual risk that must be represented in the fundamental rights risks (3.2).",
+}
+
+
+def workbook_text(item_id: str, field: str, text: str) -> str:
+    return WORKBOOK_TEXT.get((item_id, field), text)
+
+
 # Names of the sections in the left menu.
 NAV_LABELS = {
     START_TITLE: "1.0  Assessment workspace",

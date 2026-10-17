@@ -9,6 +9,7 @@ from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
 
 from .. import state
+from ..labels import workbook_text
 
 ENUM_FIELDS = {
     "SEP00": ("decision", [m.value for m in SepDecision], SepDecision),
@@ -47,10 +48,11 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     for f in cfg.sep.fields:
         key = f"w.sep.{f.id}"
         title = f"{f.question} `{f.id}`"
+        help_ = workbook_text(f.id, "activation", f.activation)
         if f.id in ENUM_FIELDS:
             attr, options, enum = ENUM_FIELDS[f.id]
             state.seed(key, sep.get(attr))
-            st.selectbox(title, options, key=key, placeholder="—", help=f.activation,
+            st.selectbox(title, options, key=key, placeholder="—", help=help_,
                          format_func=lambda c, e=enum: label(e[c]) if e else c, on_change=_sync, args=(cfg,))
             if f.id == "SEP09":
                 state.seed("w.sep.risks", sep.get("effect_risk_ids", []))
@@ -58,6 +60,6 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
                                key="w.sep.risks", on_change=_sync, args=(cfg,))
         else:
             state.seed(key, sep.get("texts", {}).get(f.id, ""))
-            st.text_area(title, key=key, height=68, help=f.activation, on_change=_sync, args=(cfg,))
+            st.text_area(title, key=key, height=68, help=help_, on_change=_sync, args=(cfg,))
     state.seed("w.sep.refs", "\n".join(sep.get("evidence_refs", [])))
     st.text_area("Evidence references (one per line)", key="w.sep.refs", height=68, on_change=_sync, args=(cfg,))

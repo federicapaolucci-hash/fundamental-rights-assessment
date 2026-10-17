@@ -77,7 +77,7 @@ hr.digcon-rule { border: none; border-top: 1px solid #E4E9F0; margin: 0.9rem 0 0
 }
 [data-testid="stButtonGroup"] button[data-selected="true"]:not(:disabled) p { color: #FFFFFF !important; }
 
-/* Routing: the active route */
+/* 2.0: the case that applies */
 .st-key-route_active { background: #E8EFFC; border: 1px solid #B9CCF5; border-radius: 8px; padding: 0.6rem 0.8rem; }
 
 /* Confirm on a check set by the API: light green, same weight as the other buttons */
