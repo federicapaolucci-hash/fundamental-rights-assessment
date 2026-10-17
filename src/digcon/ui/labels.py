@@ -127,8 +127,37 @@ def subsection(name: str) -> str:
     return SUBSECTIONS.get(name, name)
 
 
-# Workbook texts shown in the interface, reworded only where they carry internal jargon. Meaning unchanged.
+# English versions of the hard-stop elements (05_RULES has them in Italian only), AS-037: provisional,
+# display only. The engine, the audit trail and config/ keep the workbook text.
+HS_ELEMENTS = {
+    "HS01": ("Purpose manifestly unlawful", "Reasoned legal determination",
+             "Purpose cannot be redefined in a lawful form"),
+    "HS02": ("C14 = No", "No valid alternative legal basis (alternatives documented)", "No lawful redesign possible"),
+    "HS03": ("Reuse of data", "Incompatibility established",
+             "Cannot be reconfigured (purpose restriction / new collection)"),
+    "HS04": ("N02 = No", "Grave risk to rights", "Use cannot be reconfigured"),
+    "HS05": ("Human oversight essential", "Structurally impossible", "Not remediable"),
+    "HS06": ("Contestability essential", "Structurally impossible", "Not remediable"),
+    "HS07": ("Use expressly prohibited by applicable law (closed list)",),
+    "HS08": ("Grave harm to rights established", "Mitigations assessed and insufficient",
+             "Risk cannot be reduced to an acceptable level"),
+    "HS09": ("Vulnerable group identified", "Grave harm specific to the group", "Not mitigable"),
+}
+
+# Workbook texts shown in the interface: English for the ones the workbook has in Italian (AS-037), reworded
+# where they carry internal jargon. Meaning unchanged.
 WORKBOOK_TEXT = {
+    **{(f"{hs}.E{i}", "text"): t for hs, els in HS_ELEMENTS.items() for i, t in enumerate(els, 1)},
+    **{(hs, "trigger_text"): " AND ".join(els) for hs, els in HS_ELEMENTS.items()},
+    ("EG-01", "trigger_text"): "Necessary information missing or not sufficiently determined",
+    ("FLOW-03", "trigger_text"): "High-risk = Yes AND role = Provider/Joint",
+    ("CROSS-02", "trigger_text"): "Use case not consistent with the intended purpose",
+    ("QUAL-01", "trigger_text"): "Reasoning field not empty but substantially insufficient",
+    ("G01", "purpose"): "Final decision, distinct from the recommended outcome",
+    ("G02", "purpose"): "Identifies the responsible person or body",
+    ("G03", "purpose"): "Sets the review date",
+    ("G04", "purpose"): "Records conditions and limitations",
+    ("G05", "purpose"): "Records the reasoning of the decision",
     ("SEP00", "activation"): "Assess after affected persons/groups and material harm context are identified; "
                              "C55 is evidence, not a precondition.",
     ("RSEL-01", "trigger_text"): "A question, rule or evidence identifies a harm, affected right/area or material "

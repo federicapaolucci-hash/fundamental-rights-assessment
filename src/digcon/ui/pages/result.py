@@ -23,6 +23,7 @@ from ..labels import (
     REVIEW_TITLE,
     RISKS_TITLE,
     RULES_TITLE,
+    workbook_text,
 )
 from ..style import OUTCOME_COLOUR, counters, outcome_banner, risk_matrix
 
@@ -259,6 +260,7 @@ def render_governance(cfg: ConfigBundle, result: EngineResult) -> None:
         for g in cfg.questions.governance_fields:
             key = f"w.gov.{g.id}"
             state.seed(key, gov.get(GOVERNANCE_FIELDS[g.id]) or "")
-            st.text_input(f"{g.field} `{g.id}`", key=key, help=g.purpose, on_change=_sync_governance)
+            st.text_input(f"{g.field} `{g.id}`", key=key, help=workbook_text(g.id, "purpose", g.purpose),
+                          on_change=_sync_governance)
     st.caption("To reassess later, save progress (left menu) and load the file in section 1.0 when the review date or a trigger arrives.")
     downloads(cfg, result, "governance")

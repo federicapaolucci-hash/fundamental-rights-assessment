@@ -28,7 +28,7 @@ def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
         else:
             status = ":gray-badge[Not opened]"
         with st.expander(f"{hs_id} {status}", expanded=hs.opened):
-            st.caption(f"Elements: {spec.trigger_text}")
+            st.caption(f"Elements: {workbook_text(hs_id, 'trigger_text', spec.trigger_text)}")
             st.caption(f"Remediability: {spec.remediability}")
             for el in spec.encoding.elements:
                 renderer.element(el, hs.elements[el.id].value)

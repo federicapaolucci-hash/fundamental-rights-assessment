@@ -11,7 +11,7 @@ from digcon.domain.models import ConfigBundle, QuestionSpec, RuleElementSpec
 from digcon.reporting.text import option_names
 
 from . import api_mode, state
-from .labels import QUESTION_NOTES
+from .labels import QUESTION_NOTES, workbook_text
 from .style import RULE, question_title
 
 ELEMENT_STATES = [s.value for s in RuleElementState]
@@ -143,15 +143,16 @@ def _sync_element(eid: str) -> None:
 
 def element(spec: RuleElementSpec, effective: str | None = None) -> None:
     """Element of a rule: MET / NOT_MET / UNCERTAIN, or not evaluated. ANSWER elements are read-only."""
+    text = workbook_text(spec.id, "text", spec.text)
     if spec.binding is not None:
-        st.markdown(f"- `{spec.id}` {spec.text} — *read from {spec.binding.q}*: **{effective or 'UNCERTAIN'}**")
+        st.markdown(f"- `{spec.id}` {text} — *read from {spec.binding.q}*: **{effective or 'UNCERTAIN'}**")
         return
     k = f"w.{spec.id}"
     stored = state.store()["elements"].get(spec.id)
     state.seed(k, stored["state"] if stored else None)
     tags = " · ".join(t for t, on in (("legal judgement", spec.legal_judgement), ("non-remediability", spec.non_remediability)) if on)
     st.segmented_control(
-        f"`{spec.id}` {spec.text}" + (f"  _({tags})_" if tags else ""), ELEMENT_STATES, key=k,
+        f"`{spec.id}` {text}" + (f"  _({tags})_" if tags else ""), ELEMENT_STATES, key=k,
         format_func=lambda c: c.replace("_", " "), on_change=_sync_element, args=(spec.id,),
         help="Not evaluated until you choose. Click the chosen state again to clear it.",
     )

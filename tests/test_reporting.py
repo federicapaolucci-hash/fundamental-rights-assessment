@@ -119,3 +119,11 @@ def test_findings_page_says_the_outcome_is_a_recommendation():
     at = app({})
     goto(at, RESULT_TITLE)
     assert any(RECOMMENDATION_NOTE in m.value for m in at.markdown)
+
+
+def test_every_hard_stop_element_is_shown_in_english():
+    from digcon.ui.labels import HS_ELEMENTS
+
+    for rule in CFG.rules.rules:
+        if rule.family == "HS":
+            assert len(HS_ELEMENTS[rule.id]) == len(rule.encoding.elements), rule.id
