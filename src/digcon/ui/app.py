@@ -22,6 +22,7 @@ from .labels import (
     APP_CAPTION,
     APP_TITLE,
     DISCLAIMER,
+    CREDITS,
     FOOTER,
     GOVERNANCE_TITLE,
     METHODOLOGY,
@@ -261,4 +262,4 @@ def main() -> None:
         sections[current](cfg, res)
     _pager(titles, current)
     st.divider()
-    st.caption(FOOTER)
+    st.caption(f"{CREDITS}  \n{FOOTER}")

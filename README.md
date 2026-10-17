@@ -4,6 +4,9 @@ Assessing fundamental rights risks, safeguards and governance decisions. The DPI
 methodological reference for the assessment framework; AI Act obligations for providers
 (Art. 9) and deployers (Art. 27) are covered by the modules that apply to the case.
 
+Developed by Federica Paolucci, Eleonora Silva and Matteo Colombo (DIGCON — FIS-funded
+project, Baffi Centre, Bocconi University).
+
 **Open the tool: https://digcon-project.streamlit.app**
 
 The logic is deterministic and follows the DIGCON T17 decision engine, workbook version

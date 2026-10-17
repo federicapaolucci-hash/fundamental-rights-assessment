@@ -7,6 +7,7 @@ from digcon.domain.enums import Outcome, Phase
 APP_TITLE = "Fundamental Rights Assessment"
 APP_CAPTION = "Assessing fundamental rights risks, safeguards and governance decisions."
 FOOTER = "DIGCON — FIS-funded project, Baffi Centre, Bocconi University · All rights reserved"
+CREDITS = "Developed by Federica Paolucci, Eleonora Silva and Matteo Colombo."
 DISCLAIMER = (
     "**Research prototype** for research and evaluation purposes only. This tool does not certify legal compliance "
     "or replace legally required assessments or human decision-making. Do not enter personal data, confidential "

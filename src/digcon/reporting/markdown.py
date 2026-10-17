@@ -7,6 +7,7 @@ from digcon.domain.models import AssessmentState, ConfigBundle
 from digcon.engine import EngineResult
 from digcon.ui.labels import (
     APP_TITLE,
+    CREDITS,
     DISCLAIMER,
     FOOTER,
     OUTCOME_TEXT,
@@ -259,6 +260,8 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
     ]))
 
     add("---")
+    add("")
+    add(CREDITS)
     add("")
     add(FOOTER)
     add("")

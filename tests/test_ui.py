@@ -61,7 +61,7 @@ def test_empty_app_renders_with_header_and_disclaimer():
     assert "Research prototype" in page_text(at)
     assert not at.info  # no coloured info boxes
     page = page_text(at)
-    assert "Silvia" not in page and "Federica" not in page and "Eleonora" not in page
+    assert "Developed by Federica Paolucci, Eleonora Silva and Matteo Colombo." in page
     assert outcome(at) == "O4"  # nothing answered yet: evidence gaps
 
 
