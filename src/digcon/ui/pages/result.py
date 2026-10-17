@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 import streamlit as st
 
 from digcon.domain.enums import Probability, label
 from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
+from digcon.reporting import csv_tables, json_report, markdown
 
 from .. import state
 from ..labels import (
@@ -210,6 +213,32 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
                 width="stretch",
                 hide_index=True,
             )
+    downloads(cfg, result, "result")
+
+
+def downloads(cfg: ConfigBundle, result: EngineResult, where: str) -> None:
+    """The report of this run: Markdown to read, JSON with the full audit trail, CSV tables."""
+    current = state.assessment()
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", current.assessment_id).strip("-") or "assessment"
+    with st.container(border=True):
+        st.subheader("Download the report")
+        st.caption("The outcome, what to do next, every answer, the registers, the governance decision and the "
+                   "audit trail of this run. The JSON report can also be loaded in section 1.0 to resume.")
+        with st.container(horizontal=True, gap="small"):
+            st.download_button("Report (Markdown)", markdown.build(cfg, current, result),
+                               file_name=f"{name}-report.md", mime="text/markdown", key=f"report.md.{where}",
+                               icon=":material/description:", type="primary")
+            st.download_button("Report (JSON)", json_report.dumps(current, result),
+                               file_name=f"{name}-report.json", mime="application/json", key=f"report.json.{where}",
+                               icon=":material/data_object:")
+            with st.popover("Tables (CSV)", icon=":material/table_view:"):
+                for label_, data, file_ in (
+                    ("Risk register", csv_tables.risk_register(cfg, current, result), "risk-register"),
+                    ("Mitigation plan", csv_tables.mitigation_plan(cfg, current), "mitigation-plan"),
+                    ("Audit trail", csv_tables.audit_trail(result), "audit-trail"),
+                ):
+                    st.download_button(label_, data, file_name=f"{name}-{file_}.csv", mime="text/csv",
+                                       key=f"report.csv.{file_}.{where}", icon=":material/download:", width="stretch")
 
 
 def _sync_governance() -> None:
@@ -233,3 +262,4 @@ def render_governance(cfg: ConfigBundle, result: EngineResult) -> None:
             state.seed(key, gov.get(GOVERNANCE_FIELDS[g.id]) or "")
             st.text_input(f"{g.field} `{g.id}`", key=key, help=g.purpose, on_change=_sync_governance)
     st.caption("To reassess later, save progress (left menu) and load the file in section 1.0 when the review date or a trigger arrives.")
+    downloads(cfg, result, "governance")

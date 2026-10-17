@@ -6,8 +6,9 @@ from typing import Any
 
 import streamlit as st
 
-from digcon.domain.enums import AnswerKind, ControlEffectiveness, NotificationStatus, RiskLevel, Role, RuleElementState, label
+from digcon.domain.enums import AnswerKind, RuleElementState
 from digcon.domain.models import ConfigBundle, QuestionSpec, RuleElementSpec
+from digcon.reporting.text import option_names
 
 from . import api_mode, state
 from .labels import QUESTION_NOTES
@@ -20,21 +21,7 @@ def _label(code: str, names: dict[str, str]) -> str:
     return names.get(code, code)
 
 
-def _option_names(cfg: ConfigBundle, q: QuestionSpec) -> dict[str, str]:
-    names = {s.value: label(s) for s in q.states}
-    if q.kind is AnswerKind.ROLE:
-        names |= {r.value: label(r) for r in Role if r is not Role.UNKNOWN}
-    elif q.kind is AnswerKind.RISK_RATING:
-        names |= {r.value: label(r) for r in RiskLevel}
-    elif q.kind is AnswerKind.NOTIFICATION:
-        names |= {n.value: label(n) for n in NotificationStatus}
-    elif q.kind is AnswerKind.EFFECTIVENESS:
-        names |= {e.value: label(e) for e in ControlEffectiveness}
-    elif q.kind in (AnswerKind.SINGLE, AnswerKind.MULTI) and q.option_set:
-        names |= {o.code: o.label for os_ in cfg.questions.option_sets if os_.id == q.option_set for o in os_.options}
-    elif q.kind is AnswerKind.RISK_ROWS:
-        names |= {r.id: f"{r.id} — {r.label or r.right.split(';')[0][:60]}" for r in cfg.risks.risks}
-    return names
+_option_names = option_names
 
 
 def _value_codes(cfg: ConfigBundle, q: QuestionSpec) -> list[str]:

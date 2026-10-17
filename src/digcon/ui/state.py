@@ -14,6 +14,7 @@ from typing import Any, Literal
 import streamlit as st
 
 from digcon.domain.models import AssessmentState, ConfigBundle
+from digcon.reporting.json_report import assessment_of
 
 STORE = "assessment"
 NAV = "nav"  # title of the section shown
@@ -80,7 +81,7 @@ def save_status(cfg: ConfigBundle) -> Literal["empty", "saved", "unsaved"]:
 
 
 def parse_upload(raw: bytes) -> dict[str, Any]:
-    data = json.loads(raw.decode("utf-8"))
+    data = assessment_of(json.loads(raw.decode("utf-8")))  # a JSON report resumes too
     return AssessmentState.model_validate(data).model_dump(mode="json")
 
 
