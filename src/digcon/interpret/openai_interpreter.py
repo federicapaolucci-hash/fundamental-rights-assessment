@@ -141,7 +141,8 @@ def pending_elements(cfg: ConfigBundle, state: AssessmentState, rule_ids: list[s
             continue
         for el in rule.encoding.elements:
             ev = state.elements.get(el.id)
-            if el.source is ElementSource.MANUAL and el.state_enum == "RuleElementState" and (
+            cleared = ev is None and el.id in state.api_suggestions  # a person cleared the API's value
+            if el.source is ElementSource.MANUAL and el.state_enum == "RuleElementState" and not cleared and (
                 ev is None or ev.source is ElementSource.API
             ):
                 out.append(el)
@@ -149,13 +150,20 @@ def pending_elements(cfg: ConfigBundle, state: AssessmentState, rule_ids: list[s
 
 
 def apply_evaluations(state: AssessmentState, evaluations: list[ElementEvaluation]) -> AssessmentState:
-    """New state with the API evaluations laid in. A value a person set is never overwritten."""
+    """New state with the API evaluations laid in, each also kept as a suggestion for the audit trail.
+
+    A value a person set is never overwritten.
+    """
     data = state.model_dump(mode="json")
     for ev in evaluations:
         current = state.elements.get(ev.element_id)
         if current is not None and current.source is not ElementSource.API:
             continue
         data["elements"][ev.element_id] = ev.model_dump(mode="json")
+        data["api_suggestions"][ev.element_id] = {
+            "element_id": ev.element_id, "state": ev.state.value, "evidence_refs": list(ev.evidence_refs),
+            "rationale": ev.rationale, "provenance": ev.provenance or "API",
+        }
     return AssessmentState.model_validate(data)
 
 

@@ -176,8 +176,9 @@ def _refresh(cfg: ConfigBundle) -> bool:
     tried = st.session_state.setdefault(TRIED, {})
     for rule_id, _, digest in todo:
         tried[rule_id] = digest
-    updated = apply_evaluations(current, evaluations).model_dump(mode="json")["elements"]
-    state.store()["elements"] = updated
+    updated = apply_evaluations(current, evaluations).model_dump(mode="json")
+    state.store()["elements"] = updated["elements"]
+    state.store()["api_suggestions"] = updated["api_suggestions"]
     for ev in evaluations:
         st.session_state.pop(f"w.{ev.element_id}", None)  # the widget reseeds from the store
     failed = sum(1 for c in interp.calls if c.error)
@@ -186,21 +187,18 @@ def _refresh(cfg: ConfigBundle) -> bool:
     return bool(evaluations)
 
 
-CONFIRMED = "; confirmed by a person"
-
-
 def confirm(element_id: str) -> None:
-    """A person accepts the API's value: it becomes theirs (source MANUAL), the provenance keeps the origin."""
+    """A person accepts the API's value: it becomes theirs; the suggestion stays on record for the audit."""
     rec = state.store()["elements"].get(element_id)
     if not rec or rec.get("source") != ElementSource.API.value:
         return
-    rec["source"] = ElementSource.MANUAL.value
-    rec["provenance"] = (rec.get("provenance") or "") + CONFIRMED
+    state.store()["elements"][element_id] = {"element_id": element_id, "state": rec["state"]}
     note_person_change(element_id)
 
 
 def clear(element_id: str) -> None:
-    """A person discards the API's value: back to not evaluated, and the API does not fill it again."""
+    """A person discards the API's value: back to not evaluated, and the API does not fill it again
+    (the kept suggestion marks it as cleared, also after the file is saved and loaded again)."""
     state.store()["elements"].pop(element_id, None)
     st.session_state.pop(f"w.{element_id}", None)
     note_person_change(element_id)

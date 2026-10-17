@@ -23,16 +23,23 @@ _PREFIXES = ("answer:", "question:", "risk:", "mitigation:", "sep:")
 
 
 def _api_evaluations(state: AssessmentState) -> dict[str, dict]:
-    """Element states set by the interpreter, grouped by rule, for the audit trail (06_API: api_evaluation)."""
+    """What the interpreter suggested and what a person did with it, grouped by rule (06_API: api_evaluation)."""
     out: dict[str, dict] = {}
-    for eid, ev in state.elements.items():
-        if ev.source is ElementSource.API:
-            out.setdefault(eid.split(".", 1)[0], {})[eid] = {
-                "state": ev.state.value,
-                "evidence_refs": list(ev.evidence_refs),
-                "rationale": ev.rationale,
-                "provenance": ev.provenance,
-            }
+    suggestions = {eid: (s.state, s.evidence_refs, s.rationale, s.provenance) for eid, s in state.api_suggestions.items()}
+    for eid, ev in state.elements.items():  # API values from files saved before suggestions were kept
+        if ev.source is ElementSource.API and eid not in suggestions:
+            suggestions[eid] = (ev.state, ev.evidence_refs, ev.rationale, ev.provenance)
+    for eid, (suggested, refs, rationale, provenance) in sorted(suggestions.items()):
+        current = state.elements.get(eid)
+        review = state.api_review(eid)
+        out.setdefault(eid.split(".", 1)[0], {})[eid] = {
+            "state": suggested.value,
+            "evidence_refs": list(refs),
+            "rationale": rationale,
+            "provenance": provenance,
+            "human_review": review.value if review else "PENDING",
+            "final_state": current.state.value if current else None,
+        }
     return out
 
 

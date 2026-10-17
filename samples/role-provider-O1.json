@@ -619,6 +619,7 @@
       "provenance": null
     }
   },
+  "api_suggestions": {},
   "human_gates": {
     "RMS-9I": {
       "rule_id": "RMS-9I",

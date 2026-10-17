@@ -6,7 +6,7 @@ from typing import Any
 
 import streamlit as st
 
-from digcon.domain.enums import AnswerKind, RuleElementState
+from digcon.domain.enums import AnswerKind, ApiReview, RuleElementState
 from digcon.domain.models import ConfigBundle, QuestionSpec, RuleElementSpec
 from digcon.reporting.text import option_names
 
@@ -164,8 +164,23 @@ def element(spec: RuleElementSpec, effective: str | None = None) -> None:
                       args=(spec.id,), help="Keep this value as your own.")
             st.button("Clear", key=f"api.clear.{spec.id}", icon=":material/close:", on_click=api_mode.clear,
                       args=(spec.id,), help="Back to Not evaluated; it will not be filled automatically again.")
-    elif stored and (stored.get("provenance") or "").endswith(api_mode.CONFIRMED):
-        st.caption(":gray[Suggested by the API, confirmed by you.]")
+    else:
+        _api_note(spec.id)
+
+
+def _api_note(eid: str) -> None:
+    """After a person reviewed the API's value: what it suggested and what they did (kept for the audit)."""
+    suggestion = state.store().get("api_suggestions", {}).get(eid)
+    if not suggestion:
+        return
+    said = suggestion["state"].replace("_", " ")
+    note = {
+        ApiReview.CONFIRMED: "Suggested by the API, confirmed by you.",
+        ApiReview.CHANGED: f"The API suggested {said}; you changed it.",
+        ApiReview.CLEARED: f"The API suggested {said}; you cleared it.",
+    }.get(state.assessment().api_review(eid))
+    if note:
+        st.caption(f":gray[{note}]")
 
 
 def _sync_gate(rule_id: str) -> None:

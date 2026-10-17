@@ -75,16 +75,26 @@ def test_csv_tables_have_one_row_per_item(path):
 def test_reviewer_checks_show_who_set_them():
     state = build_state()
     data = state.model_dump(mode="json")
+    api = {"source": "API", "rationale": "Reason given", "evidence_refs": ["answer:C33"], "provenance": "openai:m"}
     data["elements"] = {
-        "PROP-05.E1": {"element_id": "PROP-05.E1", "state": "MET", "source": "API", "rationale": "Reason given",
-                       "evidence_refs": ["answer:C33"], "provenance": "openai:m; prompt p2; schema 1; input abc"},
-        "PROP-05.E2": {"element_id": "PROP-05.E2", "state": "NOT_MET", "source": "MANUAL",
-                       "provenance": "openai:m; prompt p2; schema 1; input abc; confirmed by a person"},
+        "PROP-05.E1": {"element_id": "PROP-05.E1", "state": "MET", **api},
+        "PROP-05.E2": {"element_id": "PROP-05.E2", "state": "NOT_MET"},
+        "PROP-03.E1": {"element_id": "PROP-03.E1", "state": "MET"},
+        "QUAL-01.E1": {"element_id": "QUAL-01.E1", "state": "UNCERTAIN"},
+    }
+    sug = {"rationale": "Reason given", "evidence_refs": ["answer:C33"], "provenance": "openai:m"}
+    data["api_suggestions"] = {
+        eid: {"element_id": eid, "state": s, **sug}
+        for eid, s in (("PROP-05.E1", "MET"), ("PROP-05.E2", "NOT_MET"), ("PROP-03.E1", "NOT_MET"),
+                       ("PROP-06.E1", "UNCERTAIN"))
     }
     state = AssessmentState.model_validate(data)
     md = markdown.build(CFG, state, run_engine(CFG, state, CTX))
-    assert "| PROP-05.E1 | MET | API (not yet confirmed) | Reason given | C33 |" in md
-    assert "| PROP-05.E2 | NOT MET | API, confirmed by a person |" in md
+    assert "| PROP-05.E1 | MET | API (not yet reviewed) | MET | Reason given | C33 |" in md
+    assert "| PROP-05.E2 | NOT MET | Person, confirmed the API | NOT MET |" in md
+    assert "| PROP-03.E1 | MET | Person, changed the API's value | NOT MET |" in md
+    assert "| PROP-06.E1 | Not evaluated | Person, cleared the API's value | UNCERTAIN |" in md
+    assert "| QUAL-01.E1 | UNCERTAIN | Person | — |" in md
 
 
 def test_free_text_cannot_break_a_table():

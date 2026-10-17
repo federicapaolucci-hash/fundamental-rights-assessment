@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from digcon.domain.enums import ElementSource, label
-from digcon.domain.models import AssessmentState, ConfigBundle, ElementEvaluation
+from digcon.domain.enums import ApiReview, label
+from digcon.domain.models import AssessmentState, ConfigBundle
 from digcon.engine import EngineResult
 from digcon.ui.labels import APP_TITLE, DISCLAIMER, FOOTER, OUTCOME_TEXT, OUTCOME_TITLES, PHASE_TITLES
 
@@ -42,13 +42,18 @@ def _v(member) -> str:
     return label(member) if member is not None else "—"
 
 
-def element_origin(ev: ElementEvaluation) -> str:
-    """Who set a reviewer check: a person, the API, or the API then confirmed by a person."""
-    if ev.source is ElementSource.API:
-        return "API (not yet confirmed)"
-    if (ev.provenance or "").startswith("openai:"):
-        return "API, confirmed by a person"
-    return "Person"
+SET_BY = {
+    None: "Person",
+    ApiReview.PENDING: "API (not yet reviewed)",
+    ApiReview.CONFIRMED: "Person, confirmed the API",
+    ApiReview.CHANGED: "Person, changed the API's value",
+    ApiReview.CLEARED: "Person, cleared the API's value",
+}
+
+
+def element_origin(state: AssessmentState, element_id: str) -> str:
+    """Who set a reviewer check, and what a person did with the API's suggestion."""
+    return SET_BY[state.api_review(element_id)]
 
 
 def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> str:
@@ -168,13 +173,19 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
         add("")
     add("### Reviewer checks")
     add("")
-    checks = [ev for eid, ev in sorted(state.elements.items()) if cfg.rule(eid.split(".", 1)[0]).family != "HS"]
+    checks = sorted(eid for eid in {*state.elements, *state.api_suggestions}
+                    if cfg.rule(eid.split(".", 1)[0]).family != "HS")
     if checks:
-        out.extend(_table(["Check", "State", "Set by", "Reason", "Cited"], [
-            [ev.element_id, ev.state.value.replace("_", " "), element_origin(ev), ev.rationale,
-             ", ".join(r.removeprefix("answer:") for r in ev.evidence_refs)]
-            for ev in checks
-        ]))
+        rows = []
+        for eid in checks:
+            ev, sug = state.elements.get(eid), state.api_suggestions.get(eid)
+            reason = sug or ev
+            rows.append([
+                eid, ev.state.value.replace("_", " ") if ev else "Not evaluated", element_origin(state, eid),
+                sug.state.value.replace("_", " ") if sug else None, reason.rationale,
+                ", ".join(r.removeprefix("answer:") for r in reason.evidence_refs),
+            ])
+        out.extend(_table(["Check", "State", "Set by", "API suggested", "API reason", "Cited"], rows))
     else:
         add("No reviewer check recorded.")
         add("")

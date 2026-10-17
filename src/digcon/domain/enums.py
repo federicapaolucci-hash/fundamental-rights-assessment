@@ -295,6 +295,15 @@ class RuleEffect(_Closed):
     OUTCOME = "OUTCOME"
 
 
+class ApiReview(_Closed):
+    """What a person did with a value the API suggested (audit: model result + human review)."""
+
+    PENDING = "PENDING"  # still the API's value, not reviewed
+    CONFIRMED = "CONFIRMED"  # a person kept the same state
+    CHANGED = "CHANGED"  # a person chose another state
+    CLEARED = "CLEARED"  # a person set it back to not evaluated
+
+
 class ElementSource(_Closed):
     """Where a rule element's state comes from."""
 

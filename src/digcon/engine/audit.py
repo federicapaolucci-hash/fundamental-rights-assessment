@@ -1,4 +1,7 @@
-"""Audit trail (06_API contract): one event per calibrated risk, per applied rule and for the outcome."""
+"""Audit trail (06_API contract): one event per calibrated risk, per applied rule and for the outcome.
+
+A rule the API evaluated gets its event even when it does not apply, so every API evaluation stays on record.
+"""
 
 from __future__ import annotations
 
@@ -30,7 +33,7 @@ def _output(r: RuleResult) -> str:
         parts.append(f"GAP: {','.join(e.value for e in r.gap_effects)}")
     if r.review:
         parts.append("REVIEW: verification requested")
-    return "; ".join(parts)
+    return "; ".join(parts) or "not applied"
 
 
 def build_trail(
@@ -75,16 +78,17 @@ def build_trail(
             ),
         )
 
+    api_evaluations = api_evaluations or {}
     for rid, r in rules.items():
-        if not r.applied or families[rid] == "OUT":
+        if families[rid] == "OUT" or not (r.applied or rid in api_evaluations):
             continue
         hs = hard_stops.get(rid)
         ev = add(
             module=MODULE_BY_FAMILY.get(families[rid], Module.RULE),
             rule_id=rid,
             input_ids=r.input_ids,
-            evidence_refs=r.evidence_refs,
-            api_evaluation=(api_evaluations or {}).get(rid),
+            evidence_refs=r.evidence_refs or sorted(f"element:{e}" for e in api_evaluations.get(rid, {})),
+            api_evaluation=api_evaluations.get(rid),
             human_gate=r.human_gate,
             human_decision=human_decisions.get(rid),
             linked_risk_ids=r.linked_risk_ids,

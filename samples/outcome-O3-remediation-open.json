@@ -549,6 +549,7 @@
       "provenance": null
     }
   },
+  "api_suggestions": {},
   "human_gates": {},
   "risks": {
     "RISK-21": {

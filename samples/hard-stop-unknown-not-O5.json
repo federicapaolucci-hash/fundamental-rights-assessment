@@ -573,6 +573,7 @@
       "provenance": null
     }
   },
+  "api_suggestions": {},
   "human_gates": {
     "HS05": {
       "rule_id": "HS05",

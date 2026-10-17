@@ -21,6 +21,7 @@ from .enums import (
     UNRESOLVED_STATES,
     AnswerKind,
     AnswerState,
+    ApiReview,
     DecisionEffect,
     ElementSource,
     EncodingKind,
@@ -601,6 +602,16 @@ class ElementEvaluation(_State):
     provenance: str | None = None  # source API only: provider, model, prompt and schema versions
 
 
+class ApiSuggestion(_State):
+    """What the API proposed for one reviewer check. Kept after a person confirms, changes or clears it."""
+
+    element_id: ElementId
+    state: RuleElementState | PropStatus
+    evidence_refs: list[NonEmpty] = []
+    rationale: str | None = None
+    provenance: NonEmpty  # provider, model, prompt and schema versions, input digest
+
+
 class HumanGateRecord(_State):
     rule_id: RuleId
     gate: HumanGate
@@ -670,6 +681,7 @@ class AssessmentState(_State):
     workbook_version: NonEmpty
     answers: dict[QuestionId, Answer] = {}
     elements: dict[ElementId, ElementEvaluation] = {}
+    api_suggestions: dict[ElementId, ApiSuggestion] = {}
     human_gates: dict[RuleId, HumanGateRecord] = {}
     risks: dict[RiskId, RiskAssessment] = {}
     mitigations: dict[MitigationId, MitigationRecord] = {}
@@ -681,6 +693,7 @@ class AssessmentState(_State):
         for key, item, attr in (
             *((k, v, "question_id") for k, v in self.answers.items()),
             *((k, v, "element_id") for k, v in self.elements.items()),
+            *((k, v, "element_id") for k, v in self.api_suggestions.items()),
             *((k, v, "rule_id") for k, v in self.human_gates.items()),
             *((k, v, "risk_id") for k, v in self.risks.items()),
             *((k, v, "mitigation_id") for k, v in self.mitigations.items()),
@@ -688,6 +701,18 @@ class AssessmentState(_State):
             if getattr(item, attr) != key:
                 raise ValueError(f"key {key!r} does not match {attr}={getattr(item, attr)!r}")
         return self
+
+    def api_review(self, element_id: str) -> ApiReview | None:
+        """What a person did with the API's suggestion for this check (None: the API suggested nothing)."""
+        suggestion = self.api_suggestions.get(element_id)
+        if suggestion is None:
+            return None
+        current = self.elements.get(element_id)
+        if current is None:
+            return ApiReview.CLEARED
+        if current.source is ElementSource.API:
+            return ApiReview.PENDING
+        return ApiReview.CONFIRMED if current.state == suggestion.state else ApiReview.CHANGED
 
 
 class HsState(_Spec):
