@@ -10,8 +10,10 @@ project, Baffi Centre, Bocconi University).
 **Open the tool: https://digcon-project.streamlit.app**
 
 The logic is deterministic and follows the DIGCON T17 decision engine, workbook version
-`T17-v1.0.1`. No answers leave the browser session: there is no database and no external
-API call.
+`T17-v1.0.1`. With the public link no answers leave the browser session: there is no database
+and no external API call. A private link, for the research team only, lets an OpenAI model
+(EU data residency) suggest the interpretive reviewer checks in section 3.3; a person confirms,
+changes or clears each one, the outcome stays deterministic and the audit trail records both.
 
 > Research prototype for research and evaluation purposes only. This tool does not certify
 > legal compliance or replace legally required assessments or human decision-making. Do not
