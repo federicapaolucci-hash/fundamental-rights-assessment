@@ -1,4 +1,4 @@
-"""Section 2.0: routing after scoping (00_MAPPA_FLUSSO §2) — which add-ons the core answers open."""
+"""Section 2.0: applicable requirements, i.e. the routing after scoping (00_MAPPA_FLUSSO §2)."""
 
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ from .questionnaire import routing_box
 
 # 00_MAPPA_FLUSSO, "Routing dopo lo scoping".
 ROUTES = [
-    ("High-risk = NO", "Closes the AI Act high-risk add-ons; the fundamental-rights assessment continues on the core"),
-    ("High-risk = YES + Provider", "Core + Provider add-on (Article 9)"),
-    ("High-risk = YES + Deployer + Article 27 applicable", "Core + Deployer add-on (Article 27 FRIA)"),
-    ("High-risk = YES + Joint", "Core + Provider add-on (Article 9) + Deployer add-on (Article 27 FRIA)"),
+    ("High-risk = NO", "The AI Act high-risk requirements do not apply; the fundamental rights assessment continues on step 1"),
+    ("High-risk = YES + Provider", "Step 1 + provider obligations (Article 9)"),
+    ("High-risk = YES + Deployer + Article 27 applicable", "Step 1 + deployer FRIA (Article 27)"),
+    ("High-risk = YES + Joint", "Step 1 + provider obligations (Article 9) + deployer FRIA (Article 27)"),
 ]
 
 
@@ -28,22 +28,22 @@ def _active_route(result: EngineResult) -> int | None:
 
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
-        "The core (step 1) is always completed. The add-ons open **only after scoping**, from the classification "
-        "(HIGH RISK, section 1.2) and the role (C05, section 1.1). Joint is not a third logic: it opens both add-ons "
-        "on the same risk register."
+        "Step 1 is always completed. The step 2 requirements apply **only once the scope is set**, from the "
+        "classification (HIGH RISK, section 1.2) and the role (C05, section 1.1). Joint is not a separate path: both "
+        "sets of requirements apply, on the same list of risks."
     )
     routing_box(result)
     active = _active_route(result)
     with st.container(border=True):
-        st.subheader("The four possible routes")
+        st.subheader("The four possible cases")
         for i, (cond, path) in enumerate(ROUTES):
             if i == active:
                 with st.container(key="route_active"):
-                    st.markdown(f":blue-badge[:material/arrow_forward: Your route] **{cond}**")
+                    st.markdown(f":blue-badge[:material/arrow_forward: Your case] **{cond}**")
                     st.markdown(path)
             else:
                 st.markdown(f":gray[{cond} → {path}]")
     if result.routing_suspended:
-        st.caption("No route applies while the add-ons are suspended (C03 = YES).")
+        st.caption("No case applies while the step 2 requirements are on hold (C03 = YES).")
     elif active is None:
-        st.caption("No route yet: answer HIGH RISK (1.2) and the role C05 (1.1). UNKNOWN opens nothing and is an evidence gap.")
+        st.caption("Not set yet: answer HIGH RISK (1.2) and the role C05 (1.1). UNKNOWN opens nothing and is an evidence gap.")

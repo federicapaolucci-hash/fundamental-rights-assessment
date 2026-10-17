@@ -19,6 +19,7 @@ from ..labels import (
     OUTCOME_TEXT,
     OUTCOME_TITLES,
     PHASE_TITLES,
+    RECOMMENDATION_NOTE,
     REVIEW_TITLE,
     RISKS_TITLE,
     RULES_TITLE,
@@ -98,7 +99,7 @@ def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:
 
 def _risk_tab(cfg: ConfigBundle, result: EngineResult) -> None:
     if not result.risks:
-        st.caption(f"No risk in the case register yet ({RISKS_TITLE}).")
+        st.caption(f"No risk included yet ({RISKS_TITLE}).")
         return
     stored = state.store()["risks"]
     points = {
@@ -130,15 +131,13 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     opened = [h for h, v in result.hard_stops.items() if v.opened]
     st.markdown(outcome_banner(result.outcome, OUTCOME_TITLES[result.outcome], OUTCOME_TEXT[result.outcome]),
                 unsafe_allow_html=True)
-    st.caption(
-        f"Rule {result.outcome_rule} · precedence O5 → O4 → O3 → O2 → O1 · workbook {result.workbook_version}. "
-        "This is the recommended outcome, not the final governance decision."
-    )
+    st.markdown(f":material/info: **{RECOMMENDATION_NOTE}**")
+    st.caption(f"Rule {result.outcome_rule} · precedence O5 → O4 → O3 → O2 → O1 · logic version {result.workbook_version}.")
     st.markdown(counters([
         ("Evidence gaps", len(result.evidence_gaps)),
         ("Open remediations", len(result.open_remediations)),
         ("Conditions", len(result.open_conditions)),
-        ("Hard stops open", len(opened)),
+        ("Stop conditions open", len(opened)),
         ("Legal reviews pending", len(result.pending_reviews)),
     ]), unsafe_allow_html=True)
 
@@ -148,7 +147,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     _next_steps(cfg, result)
 
     tab_risk, tab_hs, tab_prop, tab_mit, tab_audit = st.tabs(
-        ["Risk register", "Hard stops", "Proportionality", "Mitigation plan", "Audit trail"]
+        ["Fundamental rights risks", "Stop conditions", "Proportionality", "Safeguards and mitigation", "Audit trail"]
     )
     with tab_risk:
         _risk_tab(cfg, result)
@@ -156,7 +155,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
         st.dataframe(
             pd.DataFrame(
                 [
-                    {"HS": h, "Opened": v.opened, "State": v.state.value, "Legal gate": v.gate.value,
+                    {"HS": h, "Opened": v.opened, "State": v.state.value, "Legal review": v.gate.value,
                      "Elements": ", ".join(f"{k.split('.')[1]}={s.value}" for k, s in v.elements.items())}
                     for h, v in result.hard_stops.items()
                 ]
@@ -176,7 +175,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
                 width="stretch",
                 hide_index=True,
             )
-            st.caption("The engine never concludes 'proportionate' or 'disproportionate': normative balancing stays with legal review.")
+            st.caption("The tool never concludes 'proportionate' or 'disproportionate': normative balancing stays with legal review.")
         else:
             st.caption("No proportionality check applicable yet.")
     with tab_mit:
@@ -206,7 +205,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
                     [
                         {"Event": e.event_id, "Module": e.module.value, "Rule": e.rule_id or "", "Output": e.engine_output or "",
                          "Inputs": ", ".join(e.input_ids), "Evidence": ", ".join(e.evidence_refs),
-                         "Human gate": e.human_gate.value if e.human_gate else "", "Parent": e.parent_event_id or ""}
+                         "Human review": e.human_gate.value if e.human_gate else "", "Parent": e.parent_event_id or ""}
                         for e in result.audit_trail
                     ]
                 ),
@@ -233,8 +232,8 @@ def downloads(cfg: ConfigBundle, result: EngineResult, where: str) -> None:
                                icon=":material/data_object:")
             with st.popover("Tables (CSV)", icon=":material/table_view:"):
                 for label_, data, file_ in (
-                    ("Risk register", csv_tables.risk_register(cfg, current, result), "risk-register"),
-                    ("Mitigation plan", csv_tables.mitigation_plan(cfg, current), "mitigation-plan"),
+                    ("Fundamental rights risks", csv_tables.risk_register(cfg, current, result), "risk-register"),
+                    ("Safeguards and mitigation", csv_tables.mitigation_plan(cfg, current), "mitigation-plan"),
                     ("Audit trail", csv_tables.audit_trail(result), "audit-trail"),
                 ):
                     st.download_button(label_, data, file_name=f"{name}-{file_}.csv", mime="text/csv",
@@ -252,8 +251,8 @@ def render_governance(cfg: ConfigBundle, result: EngineResult) -> None:
         f"(rule {result.outcome_rule})."
     )
     st.markdown(
-        "The final decision is distinct from it: it is recorded by the responsible person or body, "
-        "and the engine never fills these fields (SYS-03)."
+        "The recommended outcome is a recommendation of the tool. The final decision is the organisation's: it is "
+        "recorded by the responsible person or body, and the tool never fills these fields (SYS-03)."
     )
     gov = state.store()["governance"]
     with st.container(border=True):

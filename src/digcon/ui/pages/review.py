@@ -14,9 +14,9 @@ from .. import renderer, state
 def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
     recorded_gates = set(state.store()["human_gates"])
     st.markdown(
-        "A hard stop is evaluated when an answer signals it, or when you open it by recording one of its elements. "
-        "O5 requires **every element MET and the legal review recorded**. UNCERTAIN never counts as MET, and a "
-        "mitigation plan cannot neutralise a non-remediable hard stop."
+        "A stop condition (hard stop, HS01–HS09) is evaluated when an answer signals it, or when you open it by "
+        "recording one of its elements. O5 requires **every element MET and the legal review recorded**. UNCERTAIN "
+        "never counts as MET, and a mitigation plan cannot neutralise a non-remediable stop condition."
     )
     for hs_id, hs in result.hard_stops.items():
         spec = cfg.rule(hs_id)
@@ -34,14 +34,14 @@ def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
             if hs.opened or hs_id in recorded_gates:
                 renderer.legal_gate(hs_id)
             if hs.awaiting_legal_review:
-                st.warning("Every element is MET. Record the legal review above: until then this hard stop cannot produce O5.")
+                st.warning("Every element is MET. Record the legal review above: until then this stop condition cannot produce O5.")
 
 
 def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     recorded_gates = set(state.store()["human_gates"])
     st.subheader("Reviewer checks")
     st.caption(
-        "Qualitative judgements the engine cannot draw from your answers: record them here. "
+        "Qualitative judgements the tool cannot draw from your answers: record them here. "
         "A check left as 'Not evaluated' is listed as to be verified and does not change the outcome."
     )
     suggested = [
@@ -68,7 +68,7 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     pending = [f.rule_id for f in result.pending_reviews if cfg.rule(f.rule_id).family != "HS"]
     done = [r for r in recorded_gates if cfg.rule(r).family != "HS" and r not in pending]
     if not pending and not done:
-        st.caption("No legal review pending outside the hard stops.")
+        st.caption("No legal review pending outside the stop conditions (3.5).")
     for rid in pending + done:
         st.markdown(f"**{rid}** — {cfg.rule(rid).flow_effect}")
         renderer.legal_gate(rid)

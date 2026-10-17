@@ -73,13 +73,13 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     rsel = result.rules.get("RSEL-01")
     in_register = set(state.store()["risks"])
     if rsel is not None and rsel.gap:
-        st.warning("Your answers identify a harm (RSEL-01), but no risk in the register is rated yet, so this is an "
+        st.warning("Your answers identify a harm (RSEL-01), but no risk is included and rated yet, so this is an "
                    "evidence gap. Include at least one risk below and rate its four initial dimensions.")
     missing = {r: why for r, why in suggested.items() if r not in in_register}
     if missing:
         with st.container(border=True):
             st.markdown(
-                "**Suggested by RSEL-01** (not yet in the register)\n\n"
+                "**Suggested by RSEL-01** (not yet included)\n\n"
                 + "\n".join(f"- **{r}** — from {'; '.join(why)}" for r, why in missing.items())
             )
     for spec in cfg.risks.risks:
@@ -94,7 +94,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
         with st.expander(title, expanded=bool(stored)):
             key = f"w.risk.{spec.id}.include"
             state.seed(key, bool(stored))
-            st.checkbox("Include in the case risk register", key=key, on_change=_sync, args=(spec.id,))
+            st.checkbox("Include in this assessment", key=key, on_change=_sync, args=(spec.id,))
             if rr and rr.to_reassess:
                 st.warning("Stakeholder evidence modified or contradicted this risk (SEP09): review its ratings below.")
             with st.popover("Harm scenarios and safeguards to verify"):

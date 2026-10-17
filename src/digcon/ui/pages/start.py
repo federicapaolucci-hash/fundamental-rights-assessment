@@ -32,8 +32,8 @@ def save_button(where: str, *, width="content") -> None:
 
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
-        "Work through the four steps in the left menu, in order: first the **core**, then the **add-ons** the "
-        "scoping opens, then the **transversal modules**, then the **outcome**."
+        "Work through the four steps in the left menu, in order: first the **assessment framework**, then the "
+        "**regulatory requirements** that apply, then the **rights assessment**, then the **findings and decision**."
     )
     with st.container(border=True):
         st.markdown(

@@ -36,8 +36,8 @@ def _sync(mid: str) -> None:
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
         "The 50 catalogue measures start as **candidates (NOT ACTIVATED)** and count only once you activate them "
-        "for a linked risk, rule or SEP finding.\n\n"
-        "- Only **VERIFIED EFFECTIVE** reduces risk, and only once the residual risk is rated in the risk register (3.2). "
+        "for a linked risk, rule or stakeholder finding (SEP).\n\n"
+        "- Only **VERIFIED EFFECTIVE** reduces risk, and only once the residual risk is rated in Fundamental rights risks (3.2). "
         "PROPOSED, PLANNED and IN IMPLEMENTATION reduce nothing.\n"
         "- To close a remediation, link the measure to the rule it remediates (e.g. SCR-01)."
     )
@@ -48,7 +48,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     if remediating:
         st.markdown("**Rules waiting for a remediating measure:** " + " ".join(f"`{r}`" for r in remediating))
 
-    views = {"register": "Register risks + activated", "all": "All 50 measures", "active": "Activated only"}
+    views = {"register": "Included risks + activated", "all": "All 50 measures", "active": "Activated only"}
     state.seed("w.mit.view", "register" if in_register else "all")
     view = st.segmented_control("Show", list(views), key="w.mit.view", format_func=views.get, required=True)
     activated = {m for m, r in records.items() if r.get("activated")}
@@ -59,7 +59,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     shown.sort(key=lambda s: s.id not in activated)  # activated measures first, catalogue order otherwise
     st.caption(f"{len(shown)} measures shown · {len(activated)} activated")
     if not shown:
-        st.info("No measure matches this view. Add risks in the register (3.2) or show all 50 measures.",
+        st.info("No measure matches this view. Include risks in Fundamental rights risks (3.2) or show all 50 measures.",
                 icon=":material/filter_alt_off:")
 
     for spec in shown:

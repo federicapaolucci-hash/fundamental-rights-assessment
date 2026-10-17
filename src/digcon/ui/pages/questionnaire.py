@@ -14,29 +14,31 @@ DEPLOYER = PHASE_TITLES[Phase.DEPLOYER].split(" ", 1)[0]
 
 
 def routing_box(result: EngineResult) -> None:
-    """What the routing currently opens, and what is missing to open the add-ons."""
+    """Which step 2 requirements apply now, and what is missing for the others (routing, 00_MAPPA_FLUSSO)."""
     answers = state.store()["answers"]
     role = result.role
     high_risk = result.high_risk
     lines = [f"High risk (FOLLOW): **{high_risk or 'not answered'}** · Role (C05): **{role or 'not answered'}**"]
     if result.routing_suspended:
-        lines.append(f"**Add-ons suspended.** C03 = YES: they stay closed until the HS07 legal gate excludes the prohibition ({REVIEW_TITLE}).")
+        lines.append(f"**Step 2 requirements on hold.** C03 = YES: they stay closed until the legal review of HS07 "
+                     f"excludes the prohibition ({REVIEW_TITLE}).")
     else:
         if result.provider_module:
-            lines.append(f"**Article 9 provider add-on: open** ({PROVIDER}).")
+            lines.append(f"**Article 9 provider obligations: apply** ({PROVIDER}).")
         elif role in ("PROVIDER", "JOINT"):
-            lines.append(f"Article 9 add-on ({PROVIDER}): needs **HIGH RISK = YES**.")
+            lines.append(f"Article 9 provider obligations ({PROVIDER}): need **HIGH RISK = YES**.")
         if result.deployer_module:
-            lines.append(f"**Article 27 deployer add-on: open** ({DEPLOYER}).")
+            lines.append(f"**Article 27 deployer FRIA: applies** ({DEPLOYER}).")
         elif role in ("DEPLOYER", "JOINT"):
             if high_risk != "YES":
-                lines.append(f"Article 27 add-on ({DEPLOYER}): needs **HIGH RISK = YES**, then **D00 = YES** in section {DEPLOYER}.")
+                lines.append(f"Article 27 deployer FRIA ({DEPLOYER}): needs **HIGH RISK = YES**, then **D00 = YES** in section {DEPLOYER}.")
             elif (answers.get("D00") or {}).get("state") != "YES":
-                lines.append(f"Article 27 add-on ({DEPLOYER}): answer **D00 = YES** (first question of section {DEPLOYER}) to open D01–D10.")
+                lines.append(f"Article 27 deployer FRIA ({DEPLOYER}): answer **D00 = YES** (first question of section {DEPLOYER}) to open D01–D10.")
         if high_risk == "NO":
-            lines.append("Not high-risk: the AI Act add-ons stay closed; the fundamental-rights assessment continues on the core.")
+            lines.append("Not high-risk: the AI Act requirements of step 2 do not apply; the fundamental rights assessment "
+                         "continues on step 1.")
     with st.container(border=True):
-        st.markdown("**Routing**")
+        st.markdown("**Applicable requirements**")
         st.markdown("\n\n".join(lines))
 
 

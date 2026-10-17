@@ -5,7 +5,15 @@ from __future__ import annotations
 from digcon.domain.enums import ApiReview, label
 from digcon.domain.models import AssessmentState, ConfigBundle
 from digcon.engine import EngineResult
-from digcon.ui.labels import APP_TITLE, DISCLAIMER, FOOTER, OUTCOME_TEXT, OUTCOME_TITLES, PHASE_TITLES
+from digcon.ui.labels import (
+    APP_TITLE,
+    DISCLAIMER,
+    FOOTER,
+    OUTCOME_TEXT,
+    OUTCOME_TITLES,
+    PHASE_TITLES,
+    RECOMMENDATION_NOTE,
+)
 
 from .text import answer_text
 
@@ -63,19 +71,19 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
     add(f"# {APP_TITLE} — assessment report")
     add("")
     add(f"- Assessment: **{state.assessment_id}**")
-    add(f"- Workbook: {result.workbook_version}")
-    add(f"- Engine run: {result.run_id}, {result.timestamp.strftime('%Y-%m-%d %H:%M UTC')}")
+    add(f"- Logic version: {result.workbook_version}")
+    add(f"- Run: {result.run_id}, {result.timestamp.strftime('%Y-%m-%d %H:%M UTC')}")
     add("")
     add(f"> {DISCLAIMER}")
     add("")
 
-    add("## 1. Recommended outcome")
+    add("## 1. Assessment findings: recommended outcome")
     add("")
     add(f"**{OUTCOME_TITLES[result.outcome]}** (rule {result.outcome_rule}, precedence O5 → O4 → O3 → O2 → O1)")
     add("")
     add(OUTCOME_TEXT[result.outcome])
     add("")
-    add("This is the recommended outcome, not the final governance decision (section 9).")
+    add(RECOMMENDATION_NOTE.replace("4.2 Governance decision", "section 9"))
     if not result.closed:
         add("")
         add("**Audit defects: this run is not a valid closure.** " + "; ".join(result.audit_defects))
@@ -101,14 +109,14 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
             add(f"- `{f.rule_id}` {f.message}" + (f" ({', '.join(f.ids)})" if f.ids else ""))
         add("")
 
-    add("## 3. Routing")
+    add("## 3. Applicable assessment requirements")
     add("")
     add(f"- High-risk (FOLLOW): {result.high_risk or 'not answered'}")
     add(f"- Role (C05): {result.role or 'not answered'}")
-    add(f"- Article 9 provider add-on: {'open' if result.provider_module else 'closed'}")
-    add(f"- Article 27 deployer add-on: {'open' if result.deployer_module else 'closed'}")
+    add(f"- Article 9 provider obligations: {'apply' if result.provider_module else 'do not apply'}")
+    add(f"- Article 27 deployer FRIA: {'applies' if result.deployer_module else 'does not apply'}")
     if result.routing_suspended:
-        add("- Ordinary routing suspended (C03 = YES): HS07 verification")
+        add("- Step 2 requirements on hold (C03 = YES) until the legal review of HS07")
     add("")
 
     add("## 4. Answers")
@@ -126,7 +134,7 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
             rows.append([q.id, q.text, answer_text(cfg, q, a), a.detail if a else None])
         out.extend(_table(["ID", "Question", "Answer", "Basis or evidence"], rows))
 
-    add("## 5. Stakeholder engagement (SEP)")
+    add("## 5. Stakeholder involvement (SEP)")
     add("")
     sep_rows = []
     for f in cfg.sep.fields:
@@ -138,7 +146,7 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
         sep_rows.append(["SEP09", "Risks affected", ", ".join(state.sep.effect_risk_ids)])
     out.extend(_table(["ID", "Field", "Value"], sep_rows) if sep_rows else ["Nothing recorded.", ""])
 
-    add("## 6. Risk register")
+    add("## 6. Fundamental rights risks")
     add("")
     if result.risks:
         rows = []
@@ -155,10 +163,10 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
         add("Residual risk is recorded only after a linked mitigation is verified effective.")
         add("")
     else:
-        add("No risk in the case register.")
+        add("No risk included.")
         add("")
 
-    add("## 7. Rules and reviewer checks")
+    add("## 7. Legal and procedural review")
     add("")
     add("### Proportionality")
     add("")
@@ -166,7 +174,7 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
         out.extend(_table(["Rule", "Status", "Action"], [
             [r, label(s), ", ".join(label(e) for e in result.rules[r].effects)] for r, s in result.prop_statuses.items()
         ]))
-        add("The engine never concludes 'proportionate' or 'disproportionate': normative balancing stays with legal review.")
+        add("The tool never concludes 'proportionate' or 'disproportionate': normative balancing stays with legal review.")
         add("")
     else:
         add("No proportionality check applicable.")
@@ -193,16 +201,16 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
     if gates:
         add("### Legal reviews")
         add("")
-        out.extend(_table(["Rule", "Gate", "Decision", "Reviewer"],
+        out.extend(_table(["Rule", "Review", "Decision", "Reviewer"],
                           [[g.rule_id, g.gate.value, g.decision, g.decided_by] for g in gates]))
     scrutiny = sorted(r for r, rr in result.rules.items() if rr.fired and any(e.value == "SCRUTINY" for e in rr.effects))
     if scrutiny:
         add(f"Higher scrutiny raised by: {', '.join(scrutiny)}.")
         add("")
 
-    add("## 8. Mitigation plan and hard stops")
+    add("## 8. Safeguards, mitigation and stop conditions")
     add("")
-    add("### Mitigation plan")
+    add("### Safeguards and mitigation")
     add("")
     activated = [m for m in state.mitigations.values() if m.activated]
     if activated:
@@ -214,35 +222,35 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
     else:
         add("No measure activated.")
         add("")
-    add("### Hard stops")
+    add("### Legal constraints and stop conditions")
     add("")
     opened = {h: v for h, v in result.hard_stops.items() if v.opened}
     if opened:
-        out.extend(_table(["HS", "State", "Legal review", "Elements"], [
+        out.extend(_table(["Stop condition", "State", "Legal review", "Elements"], [
             [h, v.state.value.replace("_", " "), v.gate.value,
              ", ".join(f"{k.split('.')[1]}={s.value}" for k, s in v.elements.items())]
             for h, v in opened.items()
         ]))
     else:
-        add("No hard stop opened. High risk alone never produces O5.")
+        add("No stop condition opened (HS01–HS09). High risk alone never produces O5.")
         add("")
 
-    add("## 9. Final governance decision")
+    add("## 9. Governance decision")
     add("")
     fields = {g.id: g.field for g in cfg.questions.governance_fields}
     gov = [(gid, fields.get(gid, gid), getattr(state.governance, attr)) for gid, attr in GOVERNANCE]
     if any(v for *_, v in gov):
         out.extend(_table(["ID", "Field", "Value"], [[gid, field, v] for gid, field, v in gov]))
     else:
-        add("Not recorded yet. It is filled by the responsible person or body, never by the engine.")
+        add("Not recorded yet. It is filled by the responsible person or body, never by the tool.")
         add("")
 
     add("## 10. Audit trail")
     add("")
-    add(f"{len(result.audit_trail)} events, run {result.run_id}, workbook {result.workbook_version}. "
+    add(f"{len(result.audit_trail)} events, run {result.run_id}, logic version {result.workbook_version}. "
         "The JSON report holds every field of every event.")
     add("")
-    out.extend(_table(["Event", "Module", "Rule", "Output", "Inputs", "Evidence", "API", "Human gate", "Parent"], [
+    out.extend(_table(["Event", "Module", "Rule", "Output", "Inputs", "Evidence", "API", "Human review", "Parent"], [
         [e.event_id, e.module.value, e.rule_id, e.engine_output, ", ".join(e.input_ids), ", ".join(e.evidence_refs),
          ", ".join(f"{k}={v['state']}" for k, v in e.api_evaluation.items()) if e.api_evaluation else None,
          " — ".join(x for x in ((e.human_gate.value if e.human_gate else ""), e.human_decision or "") if x) or None,

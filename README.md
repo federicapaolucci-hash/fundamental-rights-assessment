@@ -1,7 +1,8 @@
-# DPIA-based Fundamental Rights Assessment Tool
+# Fundamental Rights Assessment
 
-A DPIA-based workflow for identifying fundamental-rights risks, with role-specific AI Act
-add-ons for providers and deployers.
+Assessing fundamental rights risks, safeguards and governance decisions. The DPIA is the
+methodological reference for the assessment framework; AI Act obligations for providers
+(Art. 9) and deployers (Art. 27) are covered by the modules that apply to the case.
 
 **Open the tool: https://digcon-project.streamlit.app**
 
@@ -9,23 +10,25 @@ The logic is deterministic and follows the DIGCON T17 decision engine, workbook 
 `T17-v1.0.1`. No answers leave the browser session: there is no database and no external
 API call.
 
-> Research prototype, for academic and sandbox testing only. Do not enter personal data,
-> confidential DPIAs, trade secrets or sensitive organisational information.
+> Research prototype for research and evaluation purposes only. This tool does not certify
+> legal compliance or replace legally required assessments or human decision-making. Do not
+> enter personal data, confidential DPIAs, trade secrets or sensitive organisational information.
 
 ## Using it
 
 The assessment runs in four steps, shown in the left rail:
 
-1. **Core**: start, introduction and scoping, what, how, why.
-2. **Role-specific add-ons**: routing, then the provider (Art. 9) and deployer (Art. 27)
-   sections, which open only when the core answers call for them.
-3. **Risk analysis and safeguards**: stakeholder engagement, risk register, rules and scrutiny,
-   mitigation plan, hard stop gate.
-4. **Outcome**: recommended outcome, then the governance decision, which a person records.
+1. **Assessment framework**: assessment workspace, assessment scope, WHAT, HOW, WHY.
+2. **Regulatory requirements**: applicable assessment requirements, then provider obligations
+   (Art. 9) and the deployer FRIA (Art. 27), which open only when the step 1 answers call for them.
+3. **Rights assessment**: stakeholder involvement, fundamental rights risks, legal and procedural
+   review, safeguards and mitigation, legal constraints and stop conditions.
+4. **Findings and decision**: assessment findings (the recommended outcome), then the governance
+   decision, which a person records.
 
 Answers are autosaved in the browser. To keep an assessment or move it to another computer,
-use **Save progress** to download a JSON file, and load it again from **Start → Resume an
-assessment**.
+use **Save progress** to download a JSON file, and load it again from **Assessment workspace →
+Resume an assessment**.
 
 ### Sample assessments
 

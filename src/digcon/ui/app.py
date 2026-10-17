@@ -110,14 +110,14 @@ def _progress(cfg, res: EngineResult | None) -> tuple[dict[str, str], dict[str, 
     store = state.store()
     marks[START_TITLE] = ":gray-badge[New]" if state.save_status(cfg) == "empty" else ":blue-badge[Started]"
     marks[ROUTING_TITLE] = (
-        ":orange-badge[Suspended]" if res.routing_suspended
+        ":orange-badge[On hold]" if res.routing_suspended
         else f":blue-badge[{res.role.title()}]" if res.role and res.high_risk == "YES"
-        else ":gray-badge[Core only]" if res.high_risk == "NO" else ":gray-badge[No route yet]"
+        else ":gray-badge[Step 1 only]" if res.high_risk == "NO" else ":gray-badge[Not set yet]"
     )
     sep_filled = len(store["sep"].get("texts", {})) + sum(
         1 for a in ("decision", "vulnerability", "effect", "new_risk", "new_mitigation") if store["sep"].get(a))
     marks[SEP_TITLE] = f":gray-badge[{sep_filled} / {len(cfg.sep.fields)}]"
-    marks[RISKS_TITLE] = f":gray-badge[{len(store['risks'])} in register]"
+    marks[RISKS_TITLE] = f":gray-badge[{len(store['risks'])} included]"
     marks[RULES_TITLE] = (f":gray-badge[{len(res.verification_requests)} to verify]" if res.verification_requests
                           else ":green-badge[:material/check: Nothing to verify]")
     marks[MITIGATION_TITLE] = f":gray-badge[{sum(1 for m in store['mitigations'].values() if m.get('activated'))} activated]"

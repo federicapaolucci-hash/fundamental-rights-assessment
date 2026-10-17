@@ -31,7 +31,7 @@ def test_markdown_report_covers_outcome_answers_and_audit(path):
     md = markdown.build(CFG, state, result)
     assert OUTCOME_TITLES[result.outcome] in md
     assert state.assessment_id in md and result.workbook_version in md
-    assert "not the final governance decision" in md
+    assert "the tool's recommendation, not a decision" in md
     for qid in result.visible_questions:
         assert f"| {qid} |" in md, qid
     for event in result.audit_trail:
@@ -111,3 +111,11 @@ def test_report_downloads_in_the_app(title):
     goto(at, title)
     no_errors(at)
     assert any(s.value == "Download the report" for s in at.subheader)
+
+
+def test_findings_page_says_the_outcome_is_a_recommendation():
+    from digcon.ui.labels import RECOMMENDATION_NOTE
+
+    at = app({})
+    goto(at, RESULT_TITLE)
+    assert any(RECOMMENDATION_NOTE in m.value for m in at.markdown)

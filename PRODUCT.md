@@ -14,7 +14,7 @@ The DIGCON research team (the supervising professor plus the provider-side and d
 
 ## Product Purpose
 
-The tool runs a DPIA-based fundamental-rights assessment of an AI system, with role-specific EU AI Act add-ons for providers (Art. 9) and deployers (Art. 27). It applies the T17 decision engine deterministically. Users answer a structured questionnaire, and the engine routes them, calibrates the risks, tracks mitigations and evidence, checks the hard-stop conditions and recommends one of five outcomes, O1 (can proceed) to O5 (cannot proceed). Every outcome comes with an audit trail and downloadable Markdown and JSON reports.
+The tool supports a structured assessment of fundamental rights risks, safeguards and decision-making processes around an AI system. The DPIA is the methodological reference for the assessment framework; EU AI Act obligations for providers (Art. 9) and deployers (Art. 27) are covered by the modules that apply. It applies the T17 decision engine deterministically. Users answer a structured questionnaire, and the engine routes them, calibrates the risks, tracks mitigations and evidence, checks the hard-stop conditions and recommends one of five outcomes, O1 (can proceed) to O5 (cannot proceed). Every outcome comes with an audit trail and downloadable Markdown and JSON reports.
 
 The assessment succeeds when a participant reaches a defensible recommended outcome. That means seeing exactly which evidence is missing, which mitigations are still open and which rules fired, and being able to hand the report to whoever makes the governance decision.
 
@@ -27,10 +27,10 @@ The assessment succeeds when a participant reaches a defensible recommended outc
 ## Operating Context
 
 - A self-paced, step-by-step flow:
-  1. Core assessment (Start, INTRO, WHAT, HOW, WHY).
-  2. Role add-ons, which open according to the scoping answers.
-  3. Cross-cutting modules: stakeholder engagement (SEP), risk register, rules and scrutiny, mitigation plan, hard-stop gate.
-  4. Outcome: recommended outcome, then the governance decision.
+  1. Assessment framework (workspace, assessment scope, WHAT, HOW, WHY).
+  2. Regulatory requirements, which apply according to the scope answers.
+  3. Rights assessment: stakeholder involvement (SEP), fundamental rights risks, legal and procedural review, safeguards and mitigation, legal constraints and stop conditions.
+  4. Findings and decision: assessment findings (recommended outcome), then the governance decision.
 - Sessions are resumed by downloading and re-uploading the assessment JSON. There is no account and no database.
 - Results leave the tool as Markdown, JSON and CSV exports, which then feed an organisation's own DPIA, FRIA and governance documents.
 - It runs as a Streamlit app, probably published from the public `main` branch on Streamlit Community Cloud. Development happens on `rewrite/t17-engine`.
@@ -47,9 +47,10 @@ The assessment succeeds when a participant reaches a defensible recommended outc
 
 ## Brand Commitments
 
-- **Title:** "DPIA-based Fundamental Rights Assessment Tool".
+- **Title:** "Fundamental Rights Assessment". **Subtitle:** "Assessing fundamental rights risks, safeguards and governance decisions." (renamed 2026-10-17: no "DPIA-based" in the title).
 - **Credits:** "DIGCON — FIS-funded project, Baffi Centre, Bocconi University · All rights reserved".
-- **Disclaimer:** "Research prototype — for academic and sandbox testing purposes only. Do not enter personal data, confidential DPIAs, trade secrets or sensitive organisational information." It must stay prominent.
+- **Disclaimer:** "Research prototype for research and evaluation purposes only. This tool does not certify legal compliance or replace legally required assessments or human decision-making. Do not enter personal data, confidential DPIAs, trade secrets or sensitive organisational information." It must stay prominent.
+- **Interface vocabulary:** no "sandbox" anywhere in the interface (it stays in internal research documentation), and no user-facing "routing", "add-on", "gate" or "workbook". Rule and question IDs stay visible for traceability.
 - **Voice:** precise, legal-methodological and non-promotional. Never imply that the tool gives a legal conclusion.
 - **Institutional branding:** no binding Bocconi or Baffi brand guidelines or logos have been given. Do not add institutional marks without confirmation.
 

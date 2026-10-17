@@ -57,7 +57,7 @@ def no_errors(at: AppTest) -> None:
 def test_empty_app_renders_with_header_and_disclaimer():
     at = app()
     no_errors(at)
-    assert at.title[0].value == "DPIA-based Fundamental Rights Assessment Tool"
+    assert at.title[0].value == "Fundamental Rights Assessment"
     assert "Research prototype" in page_text(at)
     assert not at.info  # no coloured info boxes
     page = page_text(at)

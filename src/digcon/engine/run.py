@@ -190,9 +190,9 @@ def _findings(ev: Evaluator, cfg: ConfigBundle, rules: dict[str, RuleResult], ha
         if r.human_gate is HumanGate.REQUIRED:
             hs = hard_stops.get(rid)
             msg = (
-                "Hard stop awaiting legal review"
+                "Stop condition awaiting legal review"
                 if hs and hs.awaiting_legal_review
-                else "Hard stop open: legal evaluation of its elements required"
+                else "Stop condition open: legal evaluation of its elements required"
                 if hs
                 else "Human legal review pending (does not change the outcome)"
             )

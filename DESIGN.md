@@ -266,7 +266,7 @@ Risk ramp, light to dark, for matrix cells: **Very Low** (#FFF7EC), **Low** (#FE
 **Character:** A single plain system sans, as the shipped build uses it. This follows the project constraint of no external font or asset hosts. It is the current state, not a doctrine: a self-hosted face would be a system change, not a violation. Monospace is reserved for identifiers.
 
 ### Hierarchy
-- **Headline** (650, 1.6rem, -0.01em): the section heading ("4.1 Recommended outcome"). It is the largest text on the canvas and leads every page.
+- **Headline** (650, 1.6rem, -0.01em): the section heading ("4.1 Assessment findings"). It is the largest text on the canvas and leads every page.
 - **Outcome Title** (650, 1.45rem): the line inside the outcome banner.
 - **App Title** (700, 1.15rem, -0.01em): the product title in the header. It is deliberately quiet, so the section heading leads.
 - **Title** (600, 1.12rem, -0.01em): card and subsection headings ("What to do next", "Human oversight").
@@ -336,7 +336,7 @@ When a question is answered Unknown or Not owned, a violet badge with an icon an
 The rail is the navigation. Nav items are full-width, left-aligned, borderless buttons (min height 2.15rem, 0.3rem by 0.75rem padding, 0.92rem text) in Rail Nav Ink on navy. Hover lifts to Rail Hover with white text, and the current section fills Rail Active with white text. Each item ends with its status badge. Step groups are headed by small uppercase tracked labels ("Step 1 · Core assessment") and a progress bar with an "x of y questions answered" caption. The save state sits in the status card at the top of the rail: green "Saved to file" or orange "Unsaved changes", always with an icon and a line of explanation.
 
 ### Outcome Banner
-The results page leads with a full-width tinted block (8px corners, 1.1rem by 1.25rem padding) in the outcome's tint and ink: "Recommended outcome: O2 — Proceed with conditions" at 1.45rem, then one line of explanation. A caption beneath names the rule that fired, the precedence and the workbook version, and states that this is a recommendation, not the governance decision.
+The results page leads with a full-width tinted block (8px corners, 1.1rem by 1.25rem padding) in the outcome's tint and ink: "Recommended outcome: O2 — Proceed subject to conditions" at 1.45rem, then one line of explanation. A bold line beneath states that this is the tool's recommendation, not the organisation's decision; a caption names the rule that fired, the precedence and the logic version.
 
 ### Open-Item Counters
 A row of five small white bordered tiles (8px corners), each a 1.35rem tabular figure followed by its label. Tiles with a zero drop to Slate at regular weight, so non-zero items lead.

@@ -37,8 +37,9 @@ def _sync(cfg: ConfigBundle) -> None:
 
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
-        "SEP is a transversal, conditional process. A previous consultation (C55) is evidence, not a gate. "
-        "Stakeholder evidence changes a risk only through an explicit link; consultation alone never lowers risk."
+        "Stakeholder involvement (SEP) is a conditional process that runs alongside the assessment. A previous "
+        "consultation (C55) is evidence, not a precondition. Stakeholder evidence changes a risk only through an "
+        "explicit link; consultation alone never lowers risk."
     )
     if result.sep_status:
         st.markdown(f"SEP status: **{label(result.sep_status)}**")
