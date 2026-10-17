@@ -48,7 +48,7 @@ The assessment succeeds when a participant reaches a defensible recommended outc
 ## Brand Commitments
 
 - **Title:** "Fundamental Rights Assessment". **Subtitle:** "Assessing fundamental rights risks, safeguards and governance decisions." (renamed 2026-10-17: no "DPIA-based" in the title).
-- **Credits:** "Developed by Federica Paolucci, Eleonora Silva and Matteo Colombo." above "DIGCON — FIS-funded project, Baffi Centre, Bocconi University · All rights reserved" (authors added 2026-10-17).
+- **Credits:** byline under the subtitle, "By Federica Paolucci, Eleonora Silva and Matteo Colombo · DIGCON, Baffi Centre, Bocconi University" (added 2026-10-17, at the top so it is visible); footer "DIGCON — FIS-funded project, Baffi Centre, Bocconi University · All rights reserved".
 - **Disclaimer:** "Research prototype for research and evaluation purposes only. This tool does not certify legal compliance or replace legally required assessments or human decision-making. Do not enter personal data, confidential DPIAs, trade secrets or sensitive organisational information." It must stay prominent.
 - **Interface vocabulary:** no "sandbox" anywhere in the interface (it stays in internal research documentation), and no user-facing "routing", "add-on", "gate" or "workbook". Rule and question IDs stay visible for traceability.
 - **Voice:** precise, legal-methodological and non-promotional. Never imply that the tool gives a legal conclusion.

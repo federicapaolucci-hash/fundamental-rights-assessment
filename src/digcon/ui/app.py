@@ -22,7 +22,7 @@ from .labels import (
     APP_CAPTION,
     APP_TITLE,
     DISCLAIMER,
-    CREDITS,
+    BYLINE,
     FOOTER,
     GOVERNANCE_TITLE,
     METHODOLOGY,
@@ -194,6 +194,7 @@ def _header() -> None:
     with title_col, st.container(key="apphead"):
         st.title(APP_TITLE)
         st.caption(APP_CAPTION)
+        st.caption(f"*{BYLINE}*")
     with method_col, st.popover("Methodology", icon=":material/menu_book:", width="stretch"):
         st.markdown(METHODOLOGY)
     with st.container(border=True, key="disclaimer"):
@@ -262,4 +263,4 @@ def main() -> None:
         sections[current](cfg, res)
     _pager(titles, current)
     st.divider()
-    st.caption(f"{CREDITS}  \n{FOOTER}")
+    st.caption(FOOTER)
