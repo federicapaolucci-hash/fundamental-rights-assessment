@@ -664,6 +664,38 @@ class GovernanceRecord(_State):
     g05_reasoning: str | None = None
 
 
+
+class ImpactMitigationPlan(_State):
+    """Impact-led HUDERIA planning; no automatic engine outcome change."""
+    impact_id: NonEmpty
+    title: str = ""
+    impact_description: str = ""
+    occurrence: Literal["POTENTIAL", "ACTUAL", "BOTH"] = "POTENTIAL"
+    affected_people: str = ""
+    risk_ids: list[RiskId] = []
+    context_and_interdependencies: str = ""
+    stakeholder_input: str = ""
+    priority: Literal["IMMEDIATE", "HIGH", "STANDARD", "UNDETERMINED"] = "UNDETERMINED"
+    priority_reason: str = ""
+    avoid: str = ""
+    mitigate: str = ""
+    restore: str = ""
+    compensate: str = ""
+    legal_constraints: str = ""
+    responsible_actors: str = ""
+    responsible_owner: str = ""
+    target_date: str = ""
+    remedy_access: str = ""
+    monitoring_method: str = ""
+    monitoring_owner: str = ""
+    review_date: str = ""
+    implementation_evidence: list[NonEmpty] = []
+    verification_evidence: list[NonEmpty] = []
+    status: Literal["DRAFT", "PLANNED", "IMPLEMENTING", "EFFECTIVENESS_REVIEWED"] = "DRAFT"
+    reviewer: str = ""
+    review_reason: str = ""
+
+
 class AssessmentState(_State):
     assessment_id: NonEmpty
     workbook_version: NonEmpty
@@ -672,6 +704,7 @@ class AssessmentState(_State):
     human_gates: dict[RuleId, HumanGateRecord] = {}
     risks: dict[RiskId, RiskAssessment] = {}
     mitigations: dict[MitigationId, MitigationRecord] = {}
+    impact_plans: dict[str, ImpactMitigationPlan] = {}
     sep: SepRecord = SepRecord()
     governance: GovernanceRecord = GovernanceRecord()
 
@@ -683,6 +716,7 @@ class AssessmentState(_State):
             *((k, v, "rule_id") for k, v in self.human_gates.items()),
             *((k, v, "risk_id") for k, v in self.risks.items()),
             *((k, v, "mitigation_id") for k, v in self.mitigations.items()),
+            *((k, v, "impact_id") for k, v in self.impact_plans.items()),
         ):
             if getattr(item, attr) != key:
                 raise ValueError(f"key {key!r} does not match {attr}={getattr(item, attr)!r}")
