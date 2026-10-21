@@ -16,36 +16,53 @@ DISCLAIMER = (
 )
 
 METHODOLOGY = """
-This **research prototype** supports a structured assessment of **fundamental rights risks**, of the **safeguards**
-that address them and of the **decision-making processes** around an AI system. It is developed by DIGCON
-(Baffi Centre, Bocconi University).
+**What this assessment does**
 
-The **DPIA** is the methodological reference for the assessment framework; **AI Act obligations** are covered
-through the modules that apply to the case.
+DIGCON examines how a concrete AI use can affect people and fundamental rights, what safeguards are available,
+who is responsible, and whether the evidence supports the proposed decision. The DPIA provides a methodological
+reference. The research framework can be used beyond the statutory scope of an individual assessment obligation.
 
-The assessment runs in four steps:
+**How to work through it**
 
-1. **Assessment framework**, common to providers and deployers: the scope, then WHAT → HOW → WHY;
-2. **Regulatory requirements** that apply to the case;
-3. **Rights assessment**: stakeholder involvement, fundamental rights risks, legal and procedural review,
-   safeguards and mitigation, legal constraints and stop conditions;
-4. **Findings and decision**: the recommended outcome (O1–O5), then the organisation's governance decision.
+1. Describe the system, its actual use, the people affected and the organisation’s responsibilities.
+2. Explain which legal requirements apply. The provider risk management module and deployer FRIA have separate scopes.
+3. Assess harm, involve affected people where relevant, and examine safeguards and legal constraints.
+4. Address findings in the action plan, verify the evidence, and record the organisation’s reasoned decision.
 
-**Article 9 and Article 27 AI Act remain distinct obligations** and apply only once the scope is set:
+**Law and DIGCON method**
 
-- **provider obligations (Article 9)** apply when the system is high-risk and the role is Provider or Joint;
-- the **deployer FRIA (Article 27)** applies when the system is high-risk, the role is Deployer or Joint and Article 27 applies.
+[Article 9 AI Act](https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-9) concerns the risk management system
+for high-risk AI systems. [Article 27 AI Act](https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-27) concerns
+FRIAs by the deployers and for the uses within its scope. High-risk status or a joint role alone does not establish
+that Article 27 applies. Each module explains the relevant paragraphs next to the questions.
+The tool uses recorded applicability answers; it does not independently validate the legal classification or applicable dates.
 
-Answers feed a deterministic decision logic (DIGCON T17). **Unknown, not applicable and not owned are never treated as "No"**:
-they produce an evidence gap or a verification request. Risks are rated from scale, scope, reversibility and probability;
-residual risk is recorded only after a safeguard has been verified effective.
+The four risk dimensions, outcome categories, action records and review workflow are DIGCON methodological choices.
+They are not statutory scoring rules. Use existing documentation where relevant, identifying the section and explaining
+what it establishes in this context. A document reference is not, by itself, evidence of adequacy.
 
-**The tool does not decide whether a measure is proportionate.** Proportionality checks return a structured status;
-normative balancing is referred to human legal review. **O5 (cannot proceed)** requires every element of a stop
-condition (HS01–HS09) to be established and confirmed by a legal reviewer — high risk alone never produces O5.
+**From a finding to action**
 
-The recommended outcome (O1–O5) is a recommendation of the tool, **not the final governance decision**, which the
-organisation records separately.
+Distinguish missing information, an established shortcoming, a risk of harm and a legal determination still needed.
+Adding a missing document is an assessment task; changing a process to reduce harm is a mitigation measure.
+Both may require action, but they serve different purposes.
+
+Follow the four steps: understand the problem; plan the action; record implementation; verify and decide.
+Explain why each measure addresses the particular problem. Identify the implementer, the effectiveness verifier
+and the person deciding on that finding, including provider and deployer contributions where needed.
+A proposed measure does not establish implementation; implementation does not establish effectiveness;
+effectiveness does not automatically close a finding. Closure requires a specific reasoned human decision.
+
+Reassess scale, scope, reversibility and probability separately, linking each proposed change to verified controls
+and supporting evidence. Unverified residual values do not replace the initial risk. A confirmed legal stop condition
+requires a new reasoned legal determination based on changed facts or safeguards; an action plan cannot override it.
+
+**Reading the result**
+
+Unknown, not applicable and information held by another actor are distinct from a negative answer.
+Colours describe individual checks, not general permission to proceed. A valid audit trail means the recorded
+reasoning can be traced; it does not establish completeness, adequacy or legality.
+The tool’s outcome is a recommendation. The organisation records its governance decision and reasons separately.
 """
 
 # The four steps of 00_MAPPA_FLUSSO: common core, add-ons opened after scoping, transversal modules, convergence.
@@ -57,8 +74,8 @@ STEP_TEXT = {
     STEP_CORE: "Common to providers and deployers: the assessment scope, then WHAT → HOW → WHY. "
                "No later step replaces these questions.",
     STEP_ADDONS: "The AI Act requirements that apply once the scope is set: Article 9 for providers, Article 27 (FRIA) "
-                 "for deployers, both for joint roles. If the system is not high-risk they do not apply and the "
-                 "assessment continues on step 1.",
+                 "for deployers within its scope. A joint role requires a separate check of each obligation. These modules "
+                 "do not cover every potentially applicable legal requirement.",
     STEP_ANALYSIS: "Built on steps 1 and 2: stakeholder involvement, fundamental rights risks, legal and procedural "
                    "review, safeguards and mitigation, legal constraints and stop conditions.",
     STEP_OUTCOME: "The recommended outcome (O1–O5) follows from everything above. It is a recommendation of the tool: "

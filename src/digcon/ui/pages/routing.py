@@ -11,10 +11,10 @@ from .questionnaire import routing_box
 
 # 00_MAPPA_FLUSSO, "Routing dopo lo scoping".
 ROUTES = [
-    ("High-risk = NO", "The AI Act high-risk requirements do not apply; the fundamental rights assessment continues on step 1"),
+    ("High-risk = NO", "These modules remain closed on the recorded classification; continue the wider assessment and check other applicable obligations"),
     ("High-risk = YES + Provider", "Step 1 + provider obligations (Article 9)"),
     ("High-risk = YES + Deployer + Article 27 applicable", "Step 1 + deployer FRIA (Article 27)"),
-    ("High-risk = YES + Joint", "Step 1 + provider obligations (Article 9) + deployer FRIA (Article 27)"),
+    ("High-risk = YES + Joint", "Step 1 + provider risk management (Article 9); deployer FRIA only if Article 27 applies"),
 ]
 
 
@@ -29,8 +29,9 @@ def _active_route(result: EngineResult) -> int | None:
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
         "Step 1 is always completed. The step 2 requirements apply **only once the scope is set**, from the "
-        "classification (HIGH RISK, section 1.2) and the role (C05, section 1.1). Joint is not a separate path: both "
-        "sets of requirements apply, on the same list of risks."
+        "recorded high-risk classification and the organisation’s role. Where both provider and deployer responsibilities "
+        "are recorded, check each obligation separately: Article 27 does not apply automatically. "
+        "The highlighted route reflects recorded answers, not an independent legal determination."
     )
     routing_box(result)
     active = _active_route(result)
