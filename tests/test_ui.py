@@ -245,3 +245,28 @@ def test_unsent_text_drafts_are_laid_over_the_browser_copy():
     assert state.sep.texts == {"SEP01": "Trigger text"}
     assert state.assessment_id == "my-case"
     assert "NOPE" not in state.answers
+
+
+def test_guided_plan_preserves_work_across_stages_and_json_export():
+    from digcon.ui.labels import MITIGATION_TITLE
+    from digcon.ui.pages.action_plan import STAGES
+
+    at = goto(app({'elements': {'QUAL-01.E1': 'MET'}}), MITIGATION_TITLE)
+    at.radio(key='plan.stage.QUAL-01').set_value(STAGES[1]).run()
+    at.text_area(key='w.plan.QUAL-01.action').input('Document the actual workflow').run()
+    at.text_input(key='w.plan.QUAL-01.owner').input('Operations team').run()
+    at.radio(key='plan.stage.QUAL-01').set_value(STAGES[2]).run()
+    at.text_area(key='w.plan.QUAL-01.implementation').input('Workflow documented and approved').run()
+    at.text_area(key='w.plan.QUAL-01.evidence_refs').input('procedure:v2').run()
+    at.radio(key='plan.stage.QUAL-01').set_value(STAGES[3]).run()
+    at.button(key='plan.resolve.QUAL-01').click().run()
+    assert at.warning  # incomplete verification must not close the finding
+    at.radio(key='plan.stage.QUAL-01').set_value(STAGES[1]).run()
+    no_errors(at)
+    assert at.text_area(key='w.plan.QUAL-01.action').value == 'Document the actual workflow'
+    saved = AssessmentState.model_validate(at.session_state[ui_state.STORE])
+    restored = AssessmentState.model_validate_json(saved.model_dump_json())
+    item = restored.action_plan['QUAL-01']
+    assert item.owner == 'Operations team'
+    assert item.evidence_refs == ['procedure:v2']
+    assert item.decision != 'RESOLVED'

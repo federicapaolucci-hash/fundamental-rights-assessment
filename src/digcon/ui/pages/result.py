@@ -99,7 +99,10 @@ def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:
                 target = _section_of(cfg, f.rule_id, f.ids[0] if f.ids else None)
                 text_col, go_col = st.columns([6, 1], vertical_alignment="center")
                 items = " · ".join(_describe(cfg, x) for x in f.ids)
-                text_col.markdown(f"**{finding_title(f.rule_id)}** — {f.message}")
+                text_col.markdown(f"**{finding_title(f.rule_id)}**")
+                with text_col.expander("Technical finding details"):
+                    st.write(f.message)
+                    st.caption(f"{f.rule_id} · {items}")
                 go_col.button("Work on this", key=f"next.{attr}.{i}", on_click=_open_plan,
                               args=(f.rule_id,), icon=":material/arrow_forward:", type="tertiary",
                               help=f"Open {NAV_LABELS[target]}")
@@ -140,7 +143,8 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(outcome_banner(result.outcome, OUTCOME_TITLES[result.outcome], OUTCOME_TEXT[result.outcome]),
                 unsafe_allow_html=True)
     st.markdown(f":material/info: **{RECOMMENDATION_NOTE}**")
-    st.caption(f"Rule {result.outcome_rule} · precedence O5 → O4 → O3 → O2 → O1 · logic version {result.workbook_version}.")
+    with st.expander("Technical decision details"):
+        st.caption(f"Rule {result.outcome_rule} · precedence O5 → O4 → O3 → O2 → O1 · logic version {result.workbook_version}.")
     st.markdown(counters([
         ("Evidence gaps", len(result.evidence_gaps)),
         ("Open remediations", len(result.open_remediations)),

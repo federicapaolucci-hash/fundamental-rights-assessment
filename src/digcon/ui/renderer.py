@@ -13,6 +13,7 @@ from digcon.reporting.text import option_names
 from . import api_mode, state
 from .labels import QUESTION_NOTES, workbook_text
 from .style import RULE, question_title
+from .review_language import element_question, element_label
 
 ELEMENT_STATES = [s.value for s in RuleElementState]
 
@@ -73,7 +74,9 @@ UNRESOLVED_NOTE = {
 
 
 def question(cfg: ConfigBundle, q: QuestionSpec) -> None:
-    st.markdown(question_title(q.text, q.id), unsafe_allow_html=True, help=f"Rules: {q.rule_refs_text}")
+    st.markdown(question_title(q.text, ""), unsafe_allow_html=True)
+    with st.expander("Technical references"):
+        st.caption(f"Question: {q.id} · Internal rules: {q.rule_refs_text}")
     _question(cfg, q)
     answer = state.store()["answers"].get(q.id) or {}
     if answer.get("state") in UNRESOLVED_NOTE:
@@ -143,18 +146,24 @@ def _sync_element(eid: str) -> None:
 
 def element(spec: RuleElementSpec, effective: str | None = None) -> None:
     """Element of a rule: MET / NOT_MET / UNCERTAIN, or not evaluated. ANSWER elements are read-only."""
-    text = workbook_text(spec.id, "text", spec.text)
+    text = element_question(spec.id, workbook_text(spec.id, "text", spec.text))
+    with st.expander("Technical condition and source"):
+        st.caption(f"{spec.id}: {spec.text}")
+        if spec.binding is not None:
+            st.caption(f"Read from answer {spec.binding.q}")
     if spec.binding is not None:
-        st.markdown(f"- `{spec.id}` {text} — *read from {spec.binding.q}*: **{effective or 'UNCERTAIN'}**")
+        st.markdown(f"**{text}**")
+        st.write(element_label(spec.id, effective or "UNCERTAIN"))
+        st.caption("Read from your assessment answer. Update that answer to change this result.")
         return
     k = f"w.{spec.id}"
     stored = state.store()["elements"].get(spec.id)
     state.seed(k, stored["state"] if stored else None)
     tags = " · ".join(t for t, on in (("legal judgement", spec.legal_judgement), ("non-remediability", spec.non_remediability)) if on)
     st.segmented_control(
-        f"`{spec.id}` {text}" + (f"  _({tags})_" if tags else ""), ELEMENT_STATES, key=k,
-        format_func=lambda c: c.replace("_", " "), on_change=_sync_element, args=(spec.id,),
-        help="Not evaluated until you choose. Click the chosen state again to clear it.",
+        text + (f"  _({tags})_" if tags else ""), ELEMENT_STATES, key=k,
+        format_func=lambda c: element_label(spec.id, c), on_change=_sync_element, args=(spec.id,),
+        help="Choose based on the evidence. Uncertain is different from No. Click the selected answer again to clear it.",
     )
     if stored and stored.get("source") == "API":
         cited = ", ".join(r.removeprefix("answer:") for r in stored.get("evidence_refs", [])) or "none"
@@ -174,7 +183,7 @@ def _api_note(eid: str) -> None:
     suggestion = state.store().get("api_suggestions", {}).get(eid)
     if not suggestion:
         return
-    said = suggestion["state"].replace("_", " ")
+    said = element_label(eid, suggestion["state"])
     note = {
         ApiReview.CONFIRMED: "Suggested by the API, confirmed by you.",
         ApiReview.CHANGED: f"The API suggested {said}; you changed it.",

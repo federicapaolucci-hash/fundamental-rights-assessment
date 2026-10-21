@@ -134,7 +134,8 @@ def counters(items: list[tuple[str, int]]) -> str:
 
 
 def question_title(text: str, qid: str) -> str:
-    return f'<p class="digcon-q">{escape(text)}<code>{escape(qid)}</code></p>'
+    code = f"<code>{escape(qid)}</code>" if qid else ""
+    return f'<p class="digcon-q">{escape(text)}{code}</p>'
 
 
 RULE = '<hr class="digcon-rule">'

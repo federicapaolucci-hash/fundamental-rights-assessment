@@ -108,19 +108,17 @@ GOVERNANCE_TITLE = "4.2 Governance decision"
 
 # Notes shown under specific questions. Interface guidance only: they change no logic.
 QUESTION_NOTES = {
-    "C05": "Once the system is high-risk (HIGH RISK = YES, section 1.2), this role sets the step 2 requirements: "
-           "Provider → Article 9 (2.1); Deployer → Article 27 (2.2, after D00 = YES); Joint → both.",
-    "C06": "For the record only: it does not change which requirements apply. The role that counts is C05.",
-    "FOLLOW": "YES opens the step 2 requirements for the role chosen in C05 (section 1.1).",
-    "D00": "YES opens the Article 27 questions D01–D10.",
-    "C43": "Effectiveness evidence only: VERIFIED EFFECTIVE does not lower any risk by itself. Residual risk is recalculated "
-           "in Fundamental rights risks (3.2), after a linked mitigation is verified.",
-    "C48": "Effectiveness evidence only: VERIFIED EFFECTIVE does not lower any risk by itself. Residual risk is recalculated "
-           "in Fundamental rights risks (3.2), after a linked mitigation is verified.",
-    "C34": "Imported from a prior DPIA or impact assessment: it does not override the DIGCON risk rating. N/A if none applies.",
-    "C35": "Imported evidence, not the DIGCON residual-risk calculation. N/A if no prior assessment applies.",
-    "D04": "Select concrete risks from the DIGCON catalogue (RSEL-01). Rate them in Fundamental rights risks (3.2).",
+    "C05": "For high-risk systems, the selected role determines which requirements apply: provider risk management under Article 9, deployer FRIA under Article 27 where applicable, or both for joint roles.",
+    "C06": "This answer is recorded for context. The organisation’s selected role determines the applicable modules.",
+    "FOLLOW": "A high-risk classification opens the regulatory requirements for the organisation’s selected role.",
+    "D00": "Confirming applicability opens the FRIA questions under Article 27.",
+    "C43": "Record evidence of effectiveness here. A lower residual risk requires a separate documented and verified reassessment in Fundamental rights risks.",
+    "C48": "Record evidence of effectiveness here. A lower residual risk requires a separate documented and verified reassessment in Fundamental rights risks.",
+    "C34": "Record the initial risk from a prior assessment. It does not replace this tool’s risk assessment. Choose Not applicable if there is no prior assessment.",
+    "C35": "Record the residual risk from a prior assessment. It does not replace the separate reassessment here. Choose Not applicable if there is no prior assessment.",
+    "D04": "Select the concrete risks relevant to this use, then assess them in Fundamental rights risks.",
 }
+
 
 
 def subsection(name: str) -> str:

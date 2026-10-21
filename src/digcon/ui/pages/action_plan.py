@@ -18,6 +18,31 @@ FIELDS = {
 }
 
 
+STAGES = ['🎯 1. Understand the problem', '🛠️ 2. Plan the action',
+          '📎 3. Record implementation', '🔎 4. Verify and decide']
+HELP = {
+    'action': 'Describe a concrete change. Example: introduce a human review route for contested credit decisions.',
+    'rationale': 'Explain how this change addresses this specific problem. A link to a measure is not enough.',
+    'owner': 'Name the person or team responsible. Where provider and deployer must act, identify both contributions.',
+    'due_date': 'When should the action be completed? Example: 2026-11-30.',
+    'implementation': 'Describe what is now in operation, who implemented it and how. A planned action is not implementation.',
+    'evidence_refs': 'Give traceable references, for example: complaints procedure v2, section 4; training record dated 2026-11-20.',
+    'verification_method': 'Explain the test in the real use context. For a complaint route, test whether people can use it and obtain reconsideration.',
+    'verification_result': 'Record what the test found for this problem, including failures and limitations. State who performed the check and when.',
+    'verification_evidence': 'Reference the test report, reviewed cases or other evidence. The existence of a policy alone does not establish effectiveness.',
+    'reviewer': 'Name the person deciding whether this specific problem is resolved. This role is distinct from implementing and testing the action.',
+    'review_date': 'Date of the decision on this problem, in YYYY-MM-DD format.',
+    'decision_reason': 'Explain why the evidence supports resolution or why the problem remains open. Refer to the implementation and verification evidence above.',
+}
+
+
+def _use_suggestion(rid):
+    # Suggestions become editable text only after an explicit user action.
+    if not state.store().get('action_plan', {}).get(rid, {}).get('action'):
+        st.session_state[f'w.plan.{rid}.action'] = ACTIONS[rid][0]
+        _sync(rid)
+
+
 def _sync(rid):
     old = state.store().setdefault('action_plan', {}).get(rid, {})
     data = {'rule_id': rid, **old}
@@ -56,12 +81,21 @@ def _field(rid, field, stored):
     state.seed(key, value)
     short = field in ('owner', 'due_date', 'reviewer', 'review_date')
     widget = st.text_input if short else st.text_area
-    widget(FIELDS[field], key=key, on_change=_sync, args=(rid,))
+    widget(FIELDS[field], key=key, on_change=_sync, args=(rid,), help=HELP[field])
 
 
 def render(cfg, result):
-    st.markdown('Start from the problem, record what must be done and return here when you resume your assessment. '
-                '**Completing an action does not itself resolve a finding or remove a stop condition.**')
+    st.markdown('**Your action plan, in four steps.** Open a problem and choose the step you need. '
+                'Saved work is included when you export the assessment and restored when you import it.')
+    for col, heading, description in zip(st.columns(4), STAGES, [
+        'Understand what needs attention.', 'Choose an action, an owner and a date.',
+        'Record what was done and its evidence.', 'Check effectiveness and review this problem.'
+    ]):
+        with col:
+            st.markdown('**' + heading + '**')
+            st.caption(description)
+    st.caption('A proposed or implemented action does not prove effectiveness. Verification does not automatically '
+               'close the problem. Residual risk requires a separate documented reassessment in Fundamental rights risks.')
     if 'plan_message' in st.session_state: st.warning(st.session_state.pop('plan_message'))
     records = state.store().setdefault('action_plan', {})
     cards = findings(result, records)
@@ -83,30 +117,46 @@ def render(cfg, result):
             else:
                 steps = ('Review the source information below and specify the missing evidence or corrective action.',
                          'Record who will act, implement the action and submit the evidence for review.')
-            st.markdown('**First:** ' + steps[0] + '\n\n**Then:** ' + steps[1])
-            qids = [q for q in result.rules[rid].input_ids if any(x.id == q for x in cfg.questions.questions)] if rid in result.rules else []
-            with st.expander('Information used in this finding'):
-                for qid in qids:
-                    q = cfg.question(qid); a = state.store()['answers'].get(qid, {})
-                    st.markdown('**' + q.text + '**')
-                    st.write(a.get('value') or a.get('state') or 'Not answered')
-                    if a.get('detail'): st.write(a['detail'])
-                    st.button('Review this answer', key=f'plan.source.{rid}.{qid}', on_click=state.go, args=(PHASE_TITLES[q.phase],))
-                if not qids: st.caption('This finding requires review of the assessment evidence and judgement.')
-            for f in ['action','rationale','owner','due_date']: _field(rid, f, stored)
-            key=f'w.plan.{rid}.status'; state.seed(key, stored.get('status', 'TODO'))
-            st.selectbox('Work progress', ['TODO','IN_PROGRESS','AWAITING_REVIEW'], key=key,
-                         format_func=lambda v: {'TODO':'To do','IN_PROGRESS':'In progress','AWAITING_REVIEW':'Ready for review'}[v],
-                         on_change=_sync,args=(rid,))
-            with st.expander('Implementation and verification'):
-                for f in ['implementation','evidence_refs','verification_method','verification_result','verification_evidence']:
+            stage = st.radio('Choose a step', STAGES, key=f'plan.stage.{rid}', horizontal=True)
+            if stage == STAGES[0]:
+                st.markdown('**First:** ' + steps[0] + '\n\n**Then:** ' + steps[1])
+                qids = [q for q in result.rules[rid].input_ids if any(x.id == q for x in cfg.questions.questions)] if rid in result.rules else []
+                with st.expander('Information used in this finding'):
+                    for qid in qids:
+                        q = cfg.question(qid); a = state.store()['answers'].get(qid, {})
+                        st.markdown('**' + q.text + '**')
+                        st.write(a.get('value') or a.get('state') or 'Not answered')
+                        if a.get('detail'): st.write(a['detail'])
+                        st.button('Review this answer', key=f'plan.source.{rid}.{qid}', on_click=state.go, args=(PHASE_TITLES[q.phase],))
+                    if not qids: st.caption('This finding requires review of the assessment evidence and judgement.')
+            if stage == STAGES[1]:
+                if rid in ACTIONS:
+                    st.info('Suggested action: ' + ACTIONS[rid][0])
+                    if not stored.get('action'):
+                        st.button('Use this suggestion and edit it', key=f'plan.suggest.{rid}',
+                                  on_click=_use_suggestion, args=(rid,))
+                for f in ['action','rationale','owner','due_date']:
+                    _field(rid, f, stored)
+                key=f'w.plan.{rid}.status'; state.seed(key, stored.get('status', 'TODO'))
+                st.selectbox('Work progress', ['TODO','IN_PROGRESS','AWAITING_REVIEW'], key=key,
+                             format_func=lambda v: {'TODO':'Action proposed / implementation pending',
+                                                   'IN_PROGRESS':'Implementation in progress',
+                                                   'AWAITING_REVIEW':'Submitted for verification — effectiveness not yet established'}[v],
+                             on_change=_sync,args=(rid,))
+                linked = [m for m in state.assessment().mitigations.values() if rid in m.linked_rule_ids and m.activated]
+                st.caption('Linked measures: ' + ('; '.join(cfg.mitigation(m.mitigation_id).measure for m in linked) or 'None yet'))
+                st.button('Choose a measure for this problem', key=f'plan.measure.{rid}',
+                          on_click=_choose_measure, args=(rid,))
+                st.caption('Linking a measure alone never closes this problem.')
+            if stage == STAGES[2]:
+                st.info('Complete this step when the action has been carried out. Include who implemented it and what changed.')
+                for f in ['implementation','evidence_refs']:
                     _field(rid,f,stored)
-            linked = [m for m in state.assessment().mitigations.values() if rid in m.linked_rule_ids and m.activated]
-            st.caption('Linked catalogue measures: ' + ('; '.join(cfg.mitigation(m.mitigation_id).measure for m in linked) or 'None yet'))
-            st.button('Choose a measure for this problem', key=f'plan.measure.{rid}',
-                      on_click=_choose_measure, args=(rid,))
-            st.caption('Linking a measure alone never closes this finding.')
-            with st.expander('Review of this specific finding'):
+            if stage == STAGES[3]:
+                st.caption('First record the effectiveness check, including the verifier and date. Then record the decision on this specific problem.')
+                for f in ['verification_method','verification_result','verification_evidence']:
+                    _field(rid,f,stored)
+            if stage == STAGES[3]:
                 for f in ['reviewer','review_date','decision_reason']: _field(rid,f,stored)
                 if rid.startswith('HS'):
                     st.button('Reopen legal assessment', key=f'plan.hs.{rid}',on_click=state.go,args=(REVIEW_TITLE,))

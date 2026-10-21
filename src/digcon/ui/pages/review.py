@@ -10,37 +10,44 @@ from digcon.engine import EngineResult
 
 from .. import renderer, state
 from ..labels import workbook_text
+from digcon.domain.action_plan import title
 
 
 def render_hard_stops(cfg: ConfigBundle, result: EngineResult) -> None:
     recorded_gates = set(state.store()["human_gates"])
     st.markdown(
-        "A stop condition (hard stop, HS01–HS09) is evaluated when an answer signals it, or when you open it by "
-        "recording one of its elements. O5 requires **every element MET and the legal review recorded**. UNCERTAIN "
-        "never counts as MET, and a mitigation plan cannot neutralise a non-remediable stop condition."
+        "Review each question against the evidence. A stop condition is confirmed only when all its "
+        "required facts are established and a reasoned legal review is recorded. Uncertainty is not confirmation. "
+        "A mitigation plan cannot remove a confirmed stop condition: changed facts require a new legal determination."
     )
+    st.caption("Colours concern individual checks, not permission to proceed. Blue identifies a neutral fact; "
+               "green means only that the particular problem was not identified.")
     for hs_id, hs in result.hard_stops.items():
         spec = cfg.rule(hs_id)
         if hs.state is RuleElementState.MET:
-            status = ":red-badge[MET — confirmed]"
+            status = "🔴 Stop condition confirmed" if not hs.awaiting_legal_review else "🟡 Legal decision needed"
         elif hs.opened:
-            status = f":orange-badge[Open · {hs.state.value.replace('_', ' ')}]"
+            status = "🟡 Review in progress"
         else:
-            status = ":gray-badge[Not opened]"
-        with st.expander(f"{hs_id} {status}", expanded=hs.opened):
-            st.caption(f"Elements: {workbook_text(hs_id, 'trigger_text', spec.trigger_text)}")
-            st.caption(f"Remediability: {spec.remediability}")
+            status = "⚪ Not opened"
+        with st.expander(f"{title(hs_id)} · {status}", expanded=hs.opened):
+            with st.expander("Technical rule details"):
+                st.caption(f"{hs_id}: {workbook_text(hs_id, 'trigger_text', spec.trigger_text)}")
+                st.caption(f"Remediability: {spec.remediability}")
             for el in spec.encoding.elements:
                 renderer.element(el, hs.elements[el.id].value)
             if hs.opened or hs_id in recorded_gates:
                 renderer.legal_gate(hs_id)
             if hs.awaiting_legal_review:
-                st.warning("Every element is MET. Record the legal review above: until then this stop condition cannot produce O5.")
+                st.warning("All required facts are established. A reasoned legal decision is still needed to confirm this stop condition.")
 
 
 def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     recorded_gates = set(state.store()["human_gates"])
     st.subheader("Reviewer checks")
+    st.caption("Red: this problem is present. Green: this particular problem is not identified. "
+               "Yellow: more information is needed. Blue: a neutral fact is confirmed. "
+               "These colours record your judgement; they do not certify compliance or evidence adequacy.")
     st.caption(
         "Qualitative judgements the tool cannot draw from your answers: record them here. "
         "A check left as 'Not evaluated' is listed as to be verified and does not change the outcome."
@@ -60,8 +67,9 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
             continue
         mark = " · to be verified" if spec.id in to_verify else ""
         by_api = any(e.id in suggested for e in manual)
-        with st.expander(f"{spec.id}{mark}" + (" :blue-badge[Set by API]" if by_api else ""), expanded=by_api):
-            st.caption(workbook_text(spec.id, "trigger_text", spec.trigger_text))
+        with st.expander(f"{title(spec.id)}{mark}" + (" :blue-badge[Set by API]" if by_api else ""), expanded=by_api):
+            with st.expander("Technical rule details"):
+                st.caption(f"{spec.id}: {workbook_text(spec.id, 'trigger_text', spec.trigger_text)}")
             for el in manual:
                 renderer.element(el)
 
@@ -71,12 +79,14 @@ def render_rules(cfg: ConfigBundle, result: EngineResult) -> None:
     if not pending and not done:
         st.caption("No legal review pending outside the stop conditions (3.5).")
     for rid in pending + done:
-        st.markdown(f"**{rid}** — {workbook_text(rid, 'trigger_text', cfg.rule(rid).trigger_text)}")
+        st.markdown(f"**{title(rid)}**")
+        with st.expander("Technical rule details"):
+            st.caption(f"{rid}: {workbook_text(rid, 'trigger_text', cfg.rule(rid).trigger_text)}")
         renderer.legal_gate(rid)
 
     scrutiny = sorted(r for r, rr in result.rules.items() if rr.fired and any(e.value == "SCRUTINY" for e in rr.effects))
     st.subheader("Scrutiny")
     if scrutiny:
-        st.markdown("Higher scrutiny raised by: **" + ", ".join(scrutiny) + "**. Scrutiny never produces an outcome by itself.")
+        st.markdown("Higher scrutiny raised by: **" + "; ".join(title(r) for r in scrutiny) + "**. Scrutiny never produces an outcome by itself.")
     else:
         st.caption("No rule raises scrutiny.")
