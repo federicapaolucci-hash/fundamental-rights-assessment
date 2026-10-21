@@ -15,6 +15,7 @@ from .labels import QUESTION_NOTES, workbook_text
 from .style import RULE, question_title
 from .review_language import element_question, element_label
 from .legal_guidance import QUESTION_GUIDANCE, ARTICLE_9, ARTICLE_27
+from .scope_guidance import QUESTION_TITLES, render_scope_guide
 
 ELEMENT_STATES = [s.value for s in RuleElementState]
 
@@ -75,10 +76,14 @@ UNRESOLVED_NOTE = {
 
 
 def question(cfg: ConfigBundle, q: QuestionSpec) -> None:
-    st.markdown(question_title(q.text, ""), unsafe_allow_html=True)
+    st.markdown(question_title(QUESTION_TITLES.get(q.id, q.text), ""), unsafe_allow_html=True)
     with st.expander("Technical references"):
         st.caption(f"Question: {q.id} · Internal rules: {q.rule_refs_text}")
-    if q.id in QUESTION_GUIDANCE:
+        if q.id in QUESTION_TITLES:
+            st.caption(q.text)
+    if q.id in QUESTION_TITLES:
+        render_scope_guide(q.id)
+    elif q.id in QUESTION_GUIDANCE:
         provision, guidance = QUESTION_GUIDANCE[q.id]
         url = ARTICLE_9 if q.id.startswith("P") else ARTICLE_27
         st.markdown(f"[Legal basis: Article {provision} AI Act]({url})")
@@ -87,7 +92,7 @@ def question(cfg: ConfigBundle, q: QuestionSpec) -> None:
     answer = state.store()["answers"].get(q.id) or {}
     if answer.get("state") in UNRESOLVED_NOTE:
         st.markdown(UNRESOLVED_NOTE[answer["state"]])
-    if q.id in QUESTION_NOTES:
+    if q.id in QUESTION_NOTES and q.id not in QUESTION_TITLES:
         st.caption(QUESTION_NOTES[q.id])
     st.markdown(RULE, unsafe_allow_html=True)
 
@@ -96,7 +101,7 @@ def _question(cfg: ConfigBundle, q: QuestionSpec) -> None:
     stored = state.store()["answers"].get(q.id) or {}
     k = f"w.{q.id}"
     names = _option_names(cfg, q)
-    title = q.text  # visible title is drawn above; the widget keeps it as its accessible name
+    title = QUESTION_TITLES.get(q.id, q.text)  # same accessible and visible question
     hidden = "collapsed"
     on_change = _sync
     args = (cfg, q)
