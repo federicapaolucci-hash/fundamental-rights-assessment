@@ -123,17 +123,11 @@ def _link_measure(mid, rid):
 
 
 def render(cfg: ConfigBundle, result: EngineResult) -> None:
-    from . import action_plan, huderia_plan
-    plan_tab, follow_tab, catalogue_tab = st.tabs([
-        "Impact mitigation plan (HUDERIA)",
-        "Assessment follow-up",
-        "Candidate measures"
-    ])
-    with plan_tab:
-        huderia_plan.render(cfg, result)
-    with follow_tab:
-        st.caption("These are separate assessment follow-up tasks: missing documentation, legal reviews and verification. They are not mitigation measures.")
+    from . import action_plan
+    state.seed('w.plan_view', 'Your action plan')
+    view = st.radio('Work area', ['Your action plan', 'Catalogue measures'],
+                    key='w.plan_view', horizontal=True)
+    if view == 'Your action plan':
         action_plan.render(cfg, result)
-    with catalogue_tab:
-        st.caption("Candidate measures are a reference catalogue, not the impact mitigation plan.")
+    else:
         render_catalogue(cfg, result)

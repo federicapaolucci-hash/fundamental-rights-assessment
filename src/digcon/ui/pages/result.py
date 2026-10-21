@@ -85,46 +85,24 @@ def _open_plan(rule_id):
 
 
 def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:
-    """Short visual worksheet; technical findings are collapsed below."""
-    groups = (
-        ("evidence_gaps", "Missing information", "Provide evidence to complete the assessment."),
-        ("open_remediations", "Required corrections", "Address identified organisational or procedural deficiencies."),
-        ("pending_reviews", "Legal review", "Make the outstanding human legal determination."),
-        ("verification_requests", "Verification", "Check facts, safeguards and supporting evidence."),
-        ("open_conditions", "Conditions", "Record conditions applicable to proceeding."),
-    )
-    st.subheader("Decision worksheet")
-    st.caption("This summarises the assessment; it is not a list of mitigation measures.")
-    stops = sum(1 for h in result.hard_stops.values() if h.opened)
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Legal stop conditions", stops)
-    col2.metric("Missing evidence", len(result.evidence_gaps))
-    col3.metric("Corrective actions", len(result.open_remediations))
     with st.container(border=True):
-        st.markdown("**What needs attention**")
-        for key, heading, explanation in groups:
-            entries = getattr(result, key)
-            if entries:
-                st.markdown("**" + heading + " — " + str(len(entries)) + "**")
-                st.caption(explanation)
-        if not any(getattr(result, key) for key, _, _ in groups) and not stops:
-            st.success("No unresolved issues identified in this assessment.")
-    st.markdown("**Next steps**")
-    st.markdown("In **3.4**, address adverse impacts on people through the HUDERIA mitigation plan. Missing documentation and legal review are separate assessment tasks.")
-    left, right = st.columns(2)
-    left.button("Open impact mitigation plan", on_click=state.go, args=(MITIGATION_TITLE,), width="stretch")
-    right.button("Open legal review", on_click=state.go, args=(REVIEW_TITLE,), width="stretch")
-    with st.expander("Detailed findings (optional)", expanded=False):
-        st.caption("Underlying technical findings, grouped by purpose. These are not all mitigation measures.")
-        for key, heading, _ in groups:
-            entries = getattr(result, key)
-            if not entries:
+        st.subheader("What to do next")
+        if not any(getattr(result, attr) for attr, *_ in _NEXT):
+            st.caption("Nothing open: no gap, remediation, condition, pending review or verification request.")
+            return
+        for attr, title, colour, effect in _NEXT:
+            findings = getattr(result, attr)
+            if not findings:
                 continue
-            with st.expander(heading + " (" + str(len(entries)) + ")"):
-                for i, item in enumerate(entries):
-                    st.markdown("**" + finding_title(item.rule_id) + "**")
-                    st.caption(item.message)
-                    st.button("Work on this issue", key="next." + key + "." + str(i), on_click=_open_plan, args=(item.rule_id,))
+            st.markdown(f"**{title}** :{colour}-badge[{len(findings)}] :gray[{effect}]")
+            for i, f in enumerate(findings):
+                target = _section_of(cfg, f.rule_id, f.ids[0] if f.ids else None)
+                text_col, go_col = st.columns([6, 1], vertical_alignment="center")
+                items = " · ".join(_describe(cfg, x) for x in f.ids)
+                text_col.markdown(f"**{finding_title(f.rule_id)}** — {f.message}")
+                go_col.button("Work on this", key=f"next.{attr}.{i}", on_click=_open_plan,
+                              args=(f.rule_id,), icon=":material/arrow_forward:", type="tertiary",
+                              help=f"Open {NAV_LABELS[target]}")
 
 
 def _risk_tab(cfg: ConfigBundle, result: EngineResult) -> None:

@@ -98,7 +98,5 @@ def check_state(cfg: ConfigBundle, state: AssessmentState) -> list[str]:
             errors.append(f"{mid}: unknown mitigation")
         errors += [f"{mid}: linked risk {r} unknown" for r in rec.linked_risk_ids if r not in risks]
         errors += [f"{mid}: linked rule {r} unknown" for r in rec.linked_rule_ids if r not in rules]
-    for iid, impact in state.impact_plans.items():
-        errors += [f"{iid}: linked risk {rid} unknown" for rid in impact.risk_ids if rid not in risks]
     errors += [f"SEP09: risk {r} unknown" for r in state.sep.effect_risk_ids if r not in risks]
     return errors
