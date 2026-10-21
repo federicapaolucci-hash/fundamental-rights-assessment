@@ -238,11 +238,25 @@ def main() -> None:
         )
     except InvalidAssessment as exc:
         res = None
-        st.error(
-            "The outcome cannot be calculated: this assessment contains values that are not allowed answers ("
-            + "; ".join(exc.errors)
-            + "). Load a different saved file or start a new assessment in section 1.0."
-        )
+        st.error("The saved assessment uses answers that no longer match this version of DIGCON.")
+        st.markdown("**Recover your work before continuing.** Download the original saved answers, then start a fresh assessment compatible with this version. Nothing will be silently deleted.")
+        left, right = st.columns(2)
+        with left:
+            st.download_button(
+                "1. Download original assessment",
+                data=state.to_json(),
+                file_name="DIGCON-original-assessment-backup.json",
+                mime="application/json",
+                key="recover.backup",
+                width="stretch",
+            )
+        with right:
+            if st.button("2. Start a clean assessment", key="recover.reset", width="stretch"):
+                state.replace(state.empty_store(cfg), from_file=True)
+                state.go(START_TITLE)
+                st.rerun()
+        with st.expander("Technical details"):
+            st.write("; ".join(exc.errors))
 
     steps = _steps()
     sections = {title: render for items in steps.values() for title, render in items}
