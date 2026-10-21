@@ -111,3 +111,39 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
             state.seed(f"w.risk.{spec.id}.refs", "\n".join(stored.get("evidence_refs", [])))
             st.text_area("Evidence references (one per line)", key=f"w.risk.{spec.id}.refs", height=68,
                          on_change=_sync, args=(spec.id,))
+            _residual_review(cfg, spec.id)
+
+
+def _save_review(rid):
+    from digcon.domain.action_plan import fingerprint
+    from digcon.domain.models import ResidualRiskReview
+    def value(field): return st.session_state.get(f"w.resreview.{rid}.{field}", "")
+    review = ResidualRiskReview(
+        reviewer=value('reviewer'), review_date=value('date'), rationale=value('reason'),
+        evidence_refs=[x.strip() for x in value('refs').splitlines() if x.strip()],
+        mitigation_ids=value('measures') or [], reviewed_fingerprint=fingerprint(state.assessment(), rid))
+    state.store().setdefault('residual_reviews', {})[rid] = review.model_dump(mode='json')
+
+
+def _residual_review(cfg, rid):
+    from digcon.domain.action_plan import residual_approved
+    stored = state.store().get('residual_reviews', {}).get(rid, {})
+    with st.expander('Verify the residual risk assessment'):
+        st.caption('Justify scale, scope, reversibility and probability separately, including unchanged or increased dimensions. '
+                   'Identify the verified measures and supporting evidence. Changes to assessment evidence require a new review.')
+        for field, label_, attr in [('reviewer','Reviewer','reviewer'), ('date','Review date (YYYY-MM-DD)','review_date'),
+                                    ('reason','Reasoning for each of the four dimensions','rationale'),
+                                    ('refs','Verification evidence (one reference per line)','evidence_refs')]:
+            value = stored.get(attr, '')
+            if isinstance(value, list): value = '\n'.join(value)
+            key = f'w.resreview.{rid}.{field}'; state.seed(key,value)
+            st.text_area(label_,key=key)
+        mids = [m.id for m in cfg.mitigations.mitigations]
+        key=f'w.resreview.{rid}.measures';state.seed(key, stored.get('mitigation_ids', []))
+        st.multiselect('Measures supporting this reassessment', mids, key=key,
+                       format_func=lambda m: cfg.mitigation(m).measure)
+        st.button('Record residual risk review',key=f'resreview.save.{rid}',on_click=_save_review,args=(rid,))
+        if residual_approved(state.assessment(), rid):
+            st.caption('Review recorded for the current evidence. The engine also checks the linked measures and their effectiveness status.')
+        elif stored:
+            st.warning('Review incomplete or supporting information changed; residual risk remains unverified.')

@@ -259,6 +259,21 @@ def build(cfg: ConfigBundle, state: AssessmentState, result: EngineResult) -> st
         for e in result.audit_trail
     ]))
 
+    from digcon.domain.action_plan import title as action_title, approved
+    add("## Action plan")
+    for rid, item in state.action_plan.items():
+        add(f"### {action_title(rid)}")
+        add(f"- Progress: {item.status}; owner: {item.owner or 'Unassigned'}; target: {item.due_date or 'Not set'}")
+        add(f"- Action: {item.action}")
+        add(f"- Relevance: {item.rationale}")
+        add(f"- Implementation: {item.implementation}")
+        add(f"- Implementation evidence: {', '.join(item.evidence_refs)}")
+        add(f"- Verification: {item.verification_method}; result: {item.verification_result}")
+        add(f"- Verification evidence: {', '.join(item.verification_evidence)}")
+        add(f"- Review: {item.decision}; reviewer: {item.reviewer}; date: {item.review_date}")
+        add(f"- Reason: {item.decision_reason}")
+        add(f"- Current documented resolution approval: {approved(state, rid)}")
+        add("")
     add("---")
     add("")
     add(CREDITS)

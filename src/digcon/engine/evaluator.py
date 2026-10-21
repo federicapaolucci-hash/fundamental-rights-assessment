@@ -248,6 +248,9 @@ class Evaluator:
 
     def remediation_resolved(self, rule_id: str) -> bool:
         """AS-016 / AS-030: closed only by a linked, activated, VERIFIED_EFFECTIVE mitigation."""
+        from digcon.domain.action_plan import approved
+        if not approved(self.state, rule_id):
+            return False
         return any(
             rule_id in m.linked_rule_ids and m.status is MitigationStatus.VERIFIED_EFFECTIVE for m in self.activated()
         )
@@ -268,14 +271,16 @@ class Evaluator:
                 cal, ra.residual_scale, ra.residual_scope, ra.residual_reversibility, ra.residual_probability
             )
             if residual is not None:
-                verified = any(
-                    spec.id in self.linked_risks(m) and m.status is MitigationStatus.VERIFIED_EFFECTIVE
+                from digcon.domain.action_plan import residual_approved
+                review = self.state.residual_reviews.get(spec.id)
+                verified = residual_approved(self.state, spec.id) and any(
+                    m.mitigation_id in review.mitigation_ids and spec.id in self.linked_risks(m) and m.status is MitigationStatus.VERIFIED_EFFECTIVE
                     for m in self.activated()
                 )
                 if not verified:
                     self._warn(
-                        f"{spec.id}: residual dimensions ignored — no activated mitigation linked to it is "
-                        "VERIFIED_EFFECTIVE (residual risk stays empty)"
+                        f"{spec.id}: residual dimensions ignored — no current documented residual review with a linked "
+                        "VERIFIED_EFFECTIVE measure (residual risk stays empty)"
                     )
                     r_sev, residual = None, None
             out[spec.id] = RiskResult(

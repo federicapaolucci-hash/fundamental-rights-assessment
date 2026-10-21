@@ -13,6 +13,7 @@ from digcon.engine import EngineResult
 from digcon.reporting import csv_tables, json_report, markdown
 
 from .. import state
+from digcon.domain.action_plan import title as finding_title
 from ..labels import (
     MITIGATION_TITLE,
     NAV_LABELS,
@@ -77,6 +78,12 @@ _NEXT = (
 )
 
 
+def _open_plan(rule_id):
+    st.session_state["plan_focus"] = rule_id
+    st.session_state["w.plan_view"] = "Your action plan"
+    state.go(MITIGATION_TITLE)
+
+
 def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:
     with st.container(border=True):
         st.subheader("What to do next")
@@ -92,9 +99,9 @@ def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:
                 target = _section_of(cfg, f.rule_id, f.ids[0] if f.ids else None)
                 text_col, go_col = st.columns([6, 1], vertical_alignment="center")
                 items = " · ".join(_describe(cfg, x) for x in f.ids)
-                text_col.markdown(f"`{f.rule_id}` {f.message}" + (f"  \n:gray[{items}]" if items else ""))
-                go_col.button("Open " + NAV_LABELS[target].split("  ", 1)[0], key=f"next.{attr}.{i}", on_click=state.go,
-                              args=(target,), icon=":material/arrow_forward:", type="tertiary",
+                text_col.markdown(f"**{finding_title(f.rule_id)}** — {f.message}")
+                go_col.button("Work on this", key=f"next.{attr}.{i}", on_click=_open_plan,
+                              args=(f.rule_id,), icon=":material/arrow_forward:", type="tertiary",
                               help=f"Open {NAV_LABELS[target]}")
 
 

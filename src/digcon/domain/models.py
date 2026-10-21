@@ -676,6 +676,36 @@ class GovernanceRecord(_State):
     g05_reasoning: str | None = None
 
 
+class ActionPlanItem(_State):
+    """Work record; progress alone never closes an engine finding."""
+    rule_id: RuleId
+    action: str = ""
+    rationale: str = ""
+    owner: str = ""
+    due_date: str = ""
+    status: Literal["TODO", "IN_PROGRESS", "AWAITING_REVIEW"] = "TODO"
+    implementation: str = ""
+    evidence_refs: list[NonEmpty] = []
+    verification_method: str = ""
+    verification_result: str = ""
+    verification_evidence: list[NonEmpty] = []
+    reviewer: str = ""
+    review_date: str = ""
+    decision: Literal["PENDING", "RESOLVED", "OPEN"] = "PENDING"
+    decision_reason: str = ""
+    reviewed_fingerprint: str = ""
+    review_history: list[dict] = []
+
+
+class ResidualRiskReview(_State):
+    reviewer: str = ""
+    review_date: str = ""
+    rationale: str = ""
+    evidence_refs: list[NonEmpty] = []
+    mitigation_ids: list[MitigationId] = []
+    reviewed_fingerprint: str = ""
+
+
 class AssessmentState(_State):
     assessment_id: NonEmpty
     workbook_version: NonEmpty
@@ -687,6 +717,8 @@ class AssessmentState(_State):
     mitigations: dict[MitigationId, MitigationRecord] = {}
     sep: SepRecord = SepRecord()
     governance: GovernanceRecord = GovernanceRecord()
+    action_plan: dict[RuleId, ActionPlanItem] = {}
+    residual_reviews: dict[RiskId, ResidualRiskReview] = {}
 
     @model_validator(mode="after")
     def _keys_match(self) -> AssessmentState:
@@ -697,6 +729,7 @@ class AssessmentState(_State):
             *((k, v, "rule_id") for k, v in self.human_gates.items()),
             *((k, v, "risk_id") for k, v in self.risks.items()),
             *((k, v, "mitigation_id") for k, v in self.mitigations.items()),
+            *((k, v, "rule_id") for k, v in self.action_plan.items()),
         ):
             if getattr(item, attr) != key:
                 raise ValueError(f"key {key!r} does not match {attr}={getattr(item, attr)!r}")

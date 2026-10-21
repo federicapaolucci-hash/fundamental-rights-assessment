@@ -36,6 +36,14 @@ def check_state(cfg: ConfigBundle, state: AssessmentState) -> list[str]:
     risks = {r.id for r in cfg.risks.risks}
     mitigations = {m.id for m in cfg.mitigations.mitigations}
 
+    for rid, review in state.residual_reviews.items():
+        if rid not in risks or any(mid not in mitigations for mid in review.mitigation_ids):
+            errors.append(f"{rid}: unknown risk or mitigation in residual review")
+
+    for rid in state.action_plan:
+        if rid not in rules:
+            errors.append(f"{rid}: unknown action-plan rule")
+
     for qid, ans in state.answers.items():
         q = questions.get(qid)
         if q is None:

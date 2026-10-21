@@ -1,0 +1,62 @@
+DIGCON — Prima implementazione del piano operativo (21 ottobre 2026)
+Base: ZIP dpia-fria-tool-main(3).zip, T17-v1.0.1.
+Stato: bozza di codice da revisionare e provare in Streamlit, NON distribuita sul sito.
+
+COSA CAMBIA
+- Sezione 3.4: area principale con una scheda per problema; il catalogo è secondario, con collegamento alla criticità preselezionata.
+- Titoli leggibili, prime istruzioni specifiche per le otto remediation NovaBank;
+  istruzioni generiche per gli altri controlli, da affinare con Federica.
+- Risposte di origine e collegamenti alla pagina di compilazione.
+- Azione, pertinenza, responsabile, scadenza, avanzamento, attuazione e verifica.
+- Revisione separata per ogni finding; aggiornare le risposte resta necessario
+  per eliminare evidence gap. Le schede raggruppano i diversi finding per regola.
+- Il report porta alla scheda pertinente; caricando un JSON si apre il piano.
+- Piano incluso in Save progress, report JSON e report Markdown.
+- remediation_resolved richiede approvazione documentata valida per quella regola,
+  oltre alla misura attivata, collegata e verificata efficace.
+- Rischio residuo accettato solo dopo revisione documentata, riferita alle misure
+  pertinenti. Nuovo pannello nella sezione rischi per registrare la revisione.
+- Un fingerprint conservativo invalida le approvazioni quando cambiano gli input.
+  Può richiedere riesame anche per modifiche non materialmente pertinenti: affinare.
+- Nessuna scheda azione può neutralizzare gli hard stop.
+- Titoli moduli: Systemic risk management / Fundamental rights impact assessment.
+  Routing e config normativa non modificati.
+
+VERIFICHE ESEGUITE
+- Compilazione sintattica di tutti i file Python: superata.
+- 9 nuovi test eseguibili con unittest: superati.
+  PYTHONPATH=src:tests:. python tests/test_action_plan_regression.py
+- NovaBank originale: O5, 18 segnalazioni di gap, 8 remediation, come prima.
+- MIT-009 collegata arbitrariamente alle 8 remediation e RISK-47, senza approvazioni:
+  8 remediation restano aperte, rischio residuo non accettato, HS06 resta MET/O5.
+- 44 fixture originali eseguite direttamente: 42 restano conformi; MIT-T02 e PROP-T07
+  ora richiedono la revisione residua esplicita introdotta dalla patch. Le aspettative
+  originali NON sono state alterate per far passare i test. Aggiungere ai due casi
+  la nuova evidenza di revisione; verificare anche i restanti test pytest.
+
+PRIMA DI INTEGRARE
+1. Eseguire pytest e AppTest con le dipendenze requirements.txt installate.
+   In questo ambiente pytest/Streamlit non sono disponibili: nessun test UI completo.
+2. Provare caricamento NovaBank -> piano -> inserimento -> salvataggio -> ricaricamento,
+   navigazione dal report, approvazione singola e invalidazione dopo una modifica.
+3. Aggiornare test/fixture che prima consideravano sufficiente VERIFIED_EFFECTIVE.
+   Il formato accetta i vecchi JSON; la vecchia versione del programma non accetterà
+   i nuovi campi action_plan e residual_reviews (modelli extra=forbid).
+4. Collegare le nuove approvazioni anche agli eventi strutturati dell'audit engine:
+   ora sono persistite nel JSON e nel Markdown; la cronologia delle revisioni delle
+   azioni è nel relativo record, non ancora negli AuditEvent. La revisione residua
+   conserva solo l'ultima determinazione: completare la cronologia prima del rilascio.
+5. Controllare date e campi descrittivi: ora sono testo, non identità autenticate né
+   attestazioni di veridicità delle evidenze. Il fingerprint rileva cambiamenti,
+   NON è una firma o una protezione contro manipolazioni intenzionali.
+6. La pertinenza sostanziale resta valutata dal revisore; il codice non può provarla.
+ 
+7. Validazione metodologica/workbook: nessun config/*.yaml è stato modificato;
+   l'engine richiede però nuovi presupposti di chiusura. Allineare la versione del
+   protocollo e del formato prima della distribuzione.
+
+FUORI DA QUESTA PRIMA PATCH
+Revisione completa di MET/NOT MET, codici nelle altre schermate, riferimenti normativi
+puntuali, controllo delle contraddizioni tra risposte, gestione delle proposte API
+prima di conferma umana. La patch non risolve questi problemi e non va presentata
+come revisione completa del tool. I dati NovaBank personali non sono inclusi.

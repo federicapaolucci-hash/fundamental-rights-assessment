@@ -9,6 +9,7 @@ from digcon.domain.models import ConfigBundle
 from digcon.engine import EngineResult
 
 from .. import state
+from digcon.domain.action_plan import title as finding_title
 
 
 def _short(text: str, limit: int = 90) -> str:
@@ -27,26 +28,31 @@ def _sync(mid: str) -> None:
     if not activated and status == MitigationStatus.PROPOSED.value and not owner and not rules and not refs:
         state.set_or_remove("mitigations", mid, None)
         return
-    data = {"mitigation_id": mid, "activated": activated, "status": status, "linked_rule_ids": list(rules), "evidence_refs": refs}
-    if owner:
-        data["owner"] = owner
+    data = {**state.store()["mitigations"].get(mid, {}), "mitigation_id": mid, "activated": activated, "status": status, "linked_rule_ids": list(rules), "evidence_refs": refs}
+    data["owner"] = owner or None
     state.set_or_remove("mitigations", mid, data)
 
 
-def render(cfg: ConfigBundle, result: EngineResult) -> None:
+def render_catalogue(cfg: ConfigBundle, result: EngineResult) -> None:
     st.markdown(
         "The 50 catalogue measures start as **candidates (NOT ACTIVATED)** and count only once you activate them "
         "for a linked risk, rule or stakeholder finding (SEP).\n\n"
-        "- Only **VERIFIED EFFECTIVE** reduces risk, and only once the residual risk is rated in Fundamental rights risks (3.2). "
+        "- Residual risk requires a linked **VERIFIED EFFECTIVE** measure and a documented residual review in Fundamental rights risks (3.2). "
         "PROPOSED, PLANNED and IN IMPLEMENTATION reduce nothing.\n"
-        "- To close a remediation, link the measure to the rule it remediates (e.g. SCR-01)."
+        "- Link each measure to the problem it addresses and record a separate approval in Your action plan."
     )
     in_register = set(state.store()["risks"])
     records = state.store()["mitigations"]
     remediating = sorted(r for r, rr in result.rules.items() if rr.fired and RuleEffect.REMEDIATION_REQUIRED in rr.effects)
-    rule_options = sorted({*remediating, "HS08", "HS09", *(r for m in records.values() for r in m["linked_rule_ids"])})
+    focus = st.session_state.get('plan_focus')
+    rule_options = sorted({*remediating, "HS08", "HS09", *([focus] if focus in result.rules else []),
+                           *(r for m in records.values() for r in m["linked_rule_ids"])})
+    if focus in result.rules:
+        st.markdown('**Working on:** ' + finding_title(focus))
+        st.caption('Select a measure and explain its relevance in the action plan. Catalogue entries are candidates, not approval of suitability.')
+        st.button('Back to this action', on_click=_back_to_plan, key='mit.back')
     if remediating:
-        st.markdown("**Rules waiting for a remediating measure:** " + " ".join(f"`{r}`" for r in remediating))
+        st.markdown("**Rules waiting for a remediating measure:** " + "; ".join(finding_title(r) for r in remediating))
 
     views = {"register": "Included risks + activated", "all": "All 50 measures", "active": "Activated only"}
     state.seed("w.mit.view", "register" if in_register else "all")
@@ -68,7 +74,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
         on = bool(stored.get("activated"))
         status = label(MitigationStatus[stored.get("status", MitigationStatus.PROPOSED.value)])
         flag = f":blue-badge[Activated · {status}]" if on else ":gray-badge[Candidate]"
-        with st.expander(f"{flag} {spec.id} · {spec.risk_id} · {spec.responsible_role} · {_short(spec.measure)}",
+        with st.expander(f"{flag} {spec.responsible_role} · {_short(spec.measure)}",
                          expanded=on):
             for col, (name, value) in zip(st.columns(4), (("Responsible", spec.responsible_role),
                                                           ("Decision effect", spec.decision_effect_text),
@@ -82,6 +88,9 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
             state.seed(f"{k}.owner", stored.get("owner") or "")
             state.seed(f"{k}.rules", [r for r in stored.get("linked_rule_ids", []) if r in rule_options])
             state.seed(f"{k}.refs", "\n".join(stored.get("evidence_refs", [])))
+            if focus in rule_options:
+                st.button('Link to this problem', key=f'mit.link.{spec.id}',
+                          on_click=_link_measure, args=(spec.id, focus))
             with c1:
                 st.toggle("Activated", key=f"{k}.on", on_change=_sync, args=(spec.id,))
             with c2:
@@ -89,7 +98,36 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
                              format_func=lambda c: label(MitigationStatus[c]), on_change=_sync, args=(spec.id,))
             with c3:
                 st.text_input("Owner", key=f"{k}.owner", on_change=_sync, args=(spec.id,))
-            st.pills("Remediates rule(s)", rule_options, selection_mode="multi", key=f"{k}.rules", wrap=True,
+            st.pills("Problems addressed", rule_options, selection_mode="multi", key=f"{k}.rules", wrap=True,
+                     format_func=finding_title,
                      on_change=_sync, args=(spec.id,))
             st.text_area("Evidence of implementation or verification (one reference per line)", key=f"{k}.refs",
                          height=68, on_change=_sync, args=(spec.id,))
+
+
+
+def _back_to_plan():
+    st.session_state['w.plan_view'] = 'Your action plan'
+
+
+def _link_measure(mid, rid):
+    from digcon.domain.models import MitigationRecord
+    stored = state.store()['mitigations'].get(mid, {'mitigation_id': mid})
+    record = MitigationRecord.model_validate(stored).model_dump(mode='json')
+    record['activated'] = True
+    record['linked_rule_ids'] = sorted(set(record['linked_rule_ids']) | {rid})
+    state.store()['mitigations'][mid] = record
+    st.session_state.pop(f'w.mit.{mid}.on', None)
+    st.session_state.pop(f'w.mit.{mid}.rules', None)
+    _back_to_plan()
+
+
+def render(cfg: ConfigBundle, result: EngineResult) -> None:
+    from . import action_plan
+    state.seed('w.plan_view', 'Your action plan')
+    view = st.radio('Work area', ['Your action plan', 'Catalogue measures'],
+                    key='w.plan_view', horizontal=True)
+    if view == 'Your action plan':
+        action_plan.render(cfg, result)
+    else:
+        render_catalogue(cfg, result)

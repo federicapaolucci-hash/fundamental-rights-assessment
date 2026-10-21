@@ -70,8 +70,8 @@ PHASE_TITLES = {
     Phase.WHAT: "1.2 WHAT — System and context",
     Phase.HOW: "1.3 HOW — Governance and oversight",
     Phase.WHY: "1.4 WHY — Legal justification",
-    Phase.PROVIDER: "2.1 Provider obligations — Article 9 AI Act",
-    Phase.DEPLOYER: "2.2 Deployer FRIA — Article 27 AI Act",
+    Phase.PROVIDER: "2.1 Systemic risk management",
+    Phase.DEPLOYER: "2.2 Fundamental rights impact assessment (FRIA)",
 }
 
 SUBSECTIONS = {"Scoping e ruoli": "Scope and roles"}
@@ -101,7 +101,7 @@ ROUTING_TITLE = "2.0 Applicable assessment requirements"
 SEP_TITLE = "3.1 Stakeholder involvement"
 RISKS_TITLE = "3.2 Fundamental rights risks"
 RULES_TITLE = "3.3 Legal and procedural review"
-MITIGATION_TITLE = "3.4 Safeguards and mitigation"
+MITIGATION_TITLE = "3.4 Action plan and mitigation"
 REVIEW_TITLE = "3.5 Legal constraints and stop conditions"
 RESULT_TITLE = "4.1 Assessment findings"
 GOVERNANCE_TITLE = "4.2 Governance decision"
