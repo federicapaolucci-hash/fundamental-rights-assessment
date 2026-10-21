@@ -132,7 +132,7 @@ def render(cfg: ConfigBundle, result: EngineResult) -> None:
     with plan_tab:
         huderia_plan.render(cfg, result)
     with follow_tab:
-        st.caption("These assessment tasks are not 30 mitigation measures. They concern missing documentation, legal review and verification.")
+        st.caption("These are separate assessment follow-up tasks: missing documentation, legal reviews and verification. They are not mitigation measures.")
         action_plan.render(cfg, result)
     with catalogue_tab:
         st.caption("Candidate measures are a reference catalogue, not the impact mitigation plan.")

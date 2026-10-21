@@ -74,7 +74,8 @@ def _field(iid, name, label, stored):
         st.text_area(label, key=key, height=82, on_change=_save, args=(iid,))
 
 def render(cfg: ConfigBundle, result: EngineResult):
-    st.markdown("**HUDERIA-informed mitigation planning** starts with the adverse impacts identified in the assessment, not a list of triggered rules. Scope and prioritise impacts by severity and probability, including contextual vulnerabilities, then consider **AVOID → MITIGATE → RESTORE → COMPENSATE**. Assign roles, provide access to remedy and establish iterative monitoring.")
+    st.markdown("**Adverse impact means a negative effect on people.** It may already have happened or be reasonably foreseeable. For example: unjustified unfavourable loan terms, discrimination or an inability to contest a decision. It is not a missing document or an internal rule.")
+        st.markdown("**Your plan in four steps:** 1. Describe who is affected and how. 2. Prioritise by severity and probability. 3. Decide what to **AVOID → MITIGATE → RESTORE → COMPENSATE**. 4. Assign responsibility, access to remedies and monitoring.")
     st.caption("Draft plans do not close assessment findings, reduce residual risks or override legal stop conditions.")
     plans = state.store().setdefault("impact_plans", {})
     st.button("Add an adverse impact", on_click=_add, type="primary")
