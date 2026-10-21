@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from digcon.domain.enums import Outcome, Phase
 
-APP_TITLE = "DPIA-based Fundamental Rights Assessment Tool"
+APP_TITLE = "Fundamental Rights Assessment"
 APP_CAPTION = (
     "A DPIA-based workflow for identifying fundamental-rights risks, "
     "with role-specific AI Act add-ons for providers and deployers."
@@ -88,7 +88,7 @@ ROUTING_TITLE = "2.0 Routing after scoping"
 SEP_TITLE = "3.1 Stakeholder engagement (SEP)"
 RISKS_TITLE = "3.2 Risk register"
 RULES_TITLE = "3.3 Rules and scrutiny"
-MITIGATION_TITLE = "3.4 Mitigation plan"
+MITIGATION_TITLE = "3.4 Impact mitigation plan"
 REVIEW_TITLE = "3.5 Hard stop gate"
 RESULT_TITLE = "4.1 Recommended outcome"
 GOVERNANCE_TITLE = "4.2 Final governance decision"
@@ -127,7 +127,7 @@ NAV_LABELS = {
     SEP_TITLE: "3.1  Stakeholder engagement",
     RISKS_TITLE: "3.2  Risk register",
     RULES_TITLE: "3.3  Rules and scrutiny",
-    MITIGATION_TITLE: "3.4  Mitigation plan",
+    MITIGATION_TITLE: "3.4  Impact mitigation plan",
     REVIEW_TITLE: "3.5  Hard stop gate",
     RESULT_TITLE: "4.1  Recommended outcome",
     GOVERNANCE_TITLE: "4.2  Governance decision",
