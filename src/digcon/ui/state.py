@@ -51,6 +51,8 @@ def replace(data: dict[str, Any], *, from_file: bool = True) -> None:
     ``from_file``: the data matches a file the user holds (upload, or a fresh start), so it counts as saved.
     """
     st.session_state[STORE] = AssessmentState.model_validate(data).model_dump(mode="json")
+    for key in ("plan_focus", "finding_source"):
+        st.session_state.pop(key, None)
     for key in [k for k in st.session_state if str(k).startswith(WIDGET_PREFIX)]:
         del st.session_state[key]
     if from_file:

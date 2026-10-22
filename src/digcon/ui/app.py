@@ -255,6 +255,8 @@ def main() -> None:
     step = step_of(current)
 
     st.header(current)
+    from .finding_navigation import render as render_finding_navigation
+    render_finding_navigation()
     if current == steps[step][0][0]:
         st.markdown(STEP_TEXT[step])
     if current in (RULES_TITLE, RESULT_TITLE):

@@ -63,6 +63,16 @@ def render(cfg: ConfigBundle, result: EngineResult, phase: Phase) -> None:
     answered = sum(1 for q in shown if q.id in state.store()["answers"])
     st.progress(answered / len(shown) if shown else 0.0, text=f"{answered} of {len(shown)} questions answered")
     st.caption("UNKNOWN, N/A and NOT OWNED are answers too: never treated as NO.")
+    target = st.session_state.get('finding_source')
+    focused = next((q for q in shown if q.id == target), None)
+    if focused:
+        with st.container(border=True):
+            st.subheader('Answer linked to your selected issue')
+            st.caption('Review or edit this answer, then use “Back to this issue” above to continue your work.')
+            renderer.question(cfg, focused)
+        shown = [q for q in shown if q.id != target]
+    elif target:
+        st.caption('The selected answer is not currently visible in this section. Your scope or role may have changed. Use the return buttons above to review the issue.')
     groups: dict[str, list] = {}
     for q in shown:
         groups.setdefault(q.subsection, []).append(q)

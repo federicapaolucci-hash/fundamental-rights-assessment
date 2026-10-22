@@ -79,9 +79,8 @@ _NEXT = (
 
 
 def _open_plan(rule_id):
-    st.session_state["plan_focus"] = rule_id
-    st.session_state["w.plan_view"] = "Your action plan"
-    state.go(MITIGATION_TITLE)
+    from ..finding_navigation import open_finding
+    open_finding(rule_id)
 
 
 def _next_steps(cfg: ConfigBundle, result: EngineResult) -> None:

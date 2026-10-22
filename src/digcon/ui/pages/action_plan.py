@@ -3,6 +3,7 @@ import streamlit as st
 from digcon.domain.action_plan import ACTIONS, approved, approval_ready, findings, fingerprint, title
 from digcon.domain.models import ActionPlanItem
 from .. import state
+from ..finding_navigation import open_source
 from ..labels import PHASE_TITLES, REVIEW_TITLE
 
 FIELDS = {
@@ -101,6 +102,9 @@ def render(cfg, result):
     cards = findings(result, records)
     st.caption(f'{len(cards)} work items · {sum(v.get("status") == "IN_PROGRESS" for v in records.values())} in progress · '
                f'{sum(v.get("status") == "AWAITING_REVIEW" for v in records.values())} awaiting review')
+    focus = st.session_state.get('plan_focus')
+    if focus and focus not in cards:
+        st.info('The issue you were working on is no longer listed among the current findings. Return to 4.1 to review the updated assessment; this is not a separate reviewer approval.')
     if not cards:
         st.success('No open finding currently needs an action.')
         return
@@ -127,7 +131,7 @@ def render(cfg, result):
                         st.markdown('**' + q.text + '**')
                         st.write(a.get('value') or a.get('state') or 'Not answered')
                         if a.get('detail'): st.write(a['detail'])
-                        st.button('Review this answer', key=f'plan.source.{rid}.{qid}', on_click=state.go, args=(PHASE_TITLES[q.phase],))
+                        st.button('Review this answer', key=f'plan.source.{rid}.{qid}', on_click=open_source, args=(rid, qid, PHASE_TITLES[q.phase]))
                     if not qids: st.caption('This finding requires review of the assessment evidence and judgement.')
             if stage == STAGES[1]:
                 if rid in ACTIONS:
