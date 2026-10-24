@@ -598,5 +598,7 @@
     "g03_review_date": null,
     "g04_conditions": null,
     "g05_reasoning": null
-  }
+  },
+  "action_plan": {},
+  "residual_reviews": {}
 }

@@ -186,7 +186,8 @@ def test_a_changed_value_keeps_the_api_suggestion_in_the_audit(fake):
     at = app(SECRETS, CODE)
     eid = next(iter(api_elements(at)))
     at.button_group(key=f"w.{eid}").set_value("MET").run()
-    assert "The API suggested NOT MET; you changed it" in page_text(at)
+    from digcon.ui.review_language import element_label
+    assert f"The API suggested {element_label(eid, 'NOT_MET')}; you changed it" in page_text(at)
     audit = _audit(at, eid)
     assert audit["human_review"] == "CHANGED" and audit["state"] == "NOT_MET" and audit["final_state"] == "MET"
 

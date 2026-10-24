@@ -62,6 +62,11 @@
          residual_scale: HIGH, residual_scope: MODERATE, residual_reversibility: PARTLY_REVERSIBLE, residual_probability: POSSIBLE}
     mitigations:
       MIT-038: {activated: true, status: VERIFIED_EFFECTIVE, evidence_refs: [doc:mit-038-test-report]}
+    # Closure criterion since 21 Oct 2026 (professor): a documented residual review citing the
+    # verified measure. Input only; the expected values are the workbook's.
+    residual_reviews:
+      RISK-21: {reviewer: Risk owner, review_date: "2026-10-12", rationale: "Residual impact reassessed after MIT-038",
+                evidence_refs: [doc:mit-038-test-report], mitigation_ids: [MIT-038], reviewed_fingerprint: AUTO}
   expect:
     prop: {PROP-07: HUMAN_LEGAL_REVIEW}
     risk: {RISK-21: {initial: HIGH, residual: HIGH}}

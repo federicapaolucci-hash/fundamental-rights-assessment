@@ -53,6 +53,11 @@
     risks:
       RISK-07: {scale: MEDIUM, scope: MODERATE, reversibility: PARTLY_REVERSIBLE, probability: POSSIBLE,
                 residual_scale: LOW, residual_scope: LIMITED, residual_reversibility: REVERSIBLE, residual_probability: RARE}
+    # Closure criterion since 21 Oct 2026 (professor): a documented residual review citing the
+    # verified measure. Input only; the expected values are the workbook's.
+    residual_reviews:
+      RISK-07: {reviewer: Risk owner, review_date: "2026-10-12", rationale: "Test report confirms the residual dimensions",
+                evidence_refs: [doc:mit-009-test-report], mitigation_ids: [MIT-009], reviewed_fingerprint: AUTO}
   expect:
     mitigation_status: {MIT-009: VERIFIED_EFFECTIVE}
     risk: {RISK-07: {initial: MODERATE, residual: VERY_LOW}}

@@ -168,11 +168,28 @@ def test_red_flag_opens_hs_then_remediation_then_condition():
     }
     r = run(hs05_excluded)
     assert r.hard_stops["HS05"].state is RuleElementState.NOT_MET and r.outcome is Outcome.O3
-    # A linked, verified mitigation closes the remediation; MIT-002 is a continuous condition -> O2.
+    # A linked, verified mitigation alone no longer closes the remediation (action plan, 21 Oct 2026)...
     linked = {"MIT-002": {"activated": True, "status": "VERIFIED_EFFECTIVE", "linked_rule_ids": ["SCR-01"], "evidence_refs": ["doc:x"]}}
     r = run({**hs05_excluded, "mitigations": linked})
+    assert [f.rule_id for f in r.open_remediations] == ["SCR-01"] and r.outcome is Outcome.O3
+    # ...a documented, approved review of the action does; MIT-002 is a continuous condition -> O2.
+    r = run({**hs05_excluded, "mitigations": linked, "action_plan": {"SCR-01": APPROVED_ACTION}})
     assert not r.open_remediations
     assert r.outcome is Outcome.O2
+    # Changing an input after approval invalidates it: the remediation reopens.
+    state = build_state({**hs05_excluded, "mitigations": linked, "action_plan": {"SCR-01": APPROVED_ACTION}})
+    state.answers["C47"] = state.answers["C47"].model_copy(update={"value": ["HUMAN_IN_THE_LOOP"]})
+    assert run_engine(default_config(), state, CTX).outcome is Outcome.O3
+
+
+APPROVED_ACTION = {
+    "action": "Introduce recruiter override on every ranked list", "rationale": "Oversight is essential (HS05.E1)",
+    "owner": "HR lead", "due_date": "2026-11-30", "status": "AWAITING_REVIEW",
+    "implementation": "Override button deployed", "evidence_refs": ["doc:x"],
+    "verification_method": "Audit of 200 lists", "verification_result": "Override used on 14%",
+    "verification_evidence": ["doc:x-audit"], "reviewer": "Legal reviewer", "review_date": "2026-10-12",
+    "decision": "RESOLVED", "decision_reason": "Oversight now effective", "reviewed_fingerprint": "AUTO",
+}
 
 
 def test_unevaluated_reviewer_checks_do_not_block():

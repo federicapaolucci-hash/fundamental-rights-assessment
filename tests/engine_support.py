@@ -10,6 +10,7 @@ from typing import Any
 import yaml
 
 from digcon.config import default_config
+from digcon.domain.action_plan import fingerprint
 from digcon.domain.enums import AnswerState
 from digcon.domain.models import AssessmentState
 from digcon.engine import RunContext, run_engine
@@ -39,6 +40,28 @@ def _gate(rid: str, raw: Any) -> dict[str, Any]:
     return {"rule_id": rid, **raw}
 
 
+AUTO = "AUTO"  # reviewed_fingerprint placeholder: sign the review off against the final state
+
+
+def _sign_reviews(state: AssessmentState) -> AssessmentState:
+    """Fill reviewed_fingerprint = AUTO, as the reviewer does by approving in the UI.
+
+    A fingerprint leaves out the whole action plan and every residual review, so the
+    order in which reviews are signed does not matter.
+    """
+    plan = {
+        rid: item.model_copy(update={"reviewed_fingerprint": fingerprint(state, rid)})
+        if item.reviewed_fingerprint == AUTO else item
+        for rid, item in state.action_plan.items()
+    }
+    reviews = {
+        rid: review.model_copy(update={"reviewed_fingerprint": fingerprint(state, rid)})
+        if review.reviewed_fingerprint == AUTO else review
+        for rid, review in state.residual_reviews.items()
+    }
+    return state.model_copy(update={"action_plan": plan, "residual_reviews": reviews})
+
+
 def build_state(patch: dict[str, Any] | None = None) -> AssessmentState:
     base = load_yaml("baseline.yaml")
     data = copy.deepcopy(base)
@@ -48,7 +71,7 @@ def build_state(patch: dict[str, Any] | None = None) -> AssessmentState:
     data["answers"].update(patch.get("answers", {}))
     data["elements"] = {**data.get("elements", {}), **patch.get("elements", {})}
     data["risks"] = {**data.get("risks", {}), **patch.get("risks", {})}
-    return AssessmentState.model_validate(
+    return _sign_reviews(AssessmentState.model_validate(
         {
             "assessment_id": data["assessment_id"],
             "workbook_version": data["workbook_version"],
@@ -58,8 +81,10 @@ def build_state(patch: dict[str, Any] | None = None) -> AssessmentState:
             "risks": {r: {"risk_id": r, **v} for r, v in data["risks"].items()},
             "mitigations": {m: {"mitigation_id": m, **v} for m, v in patch.get("mitigations", {}).items()},
             "sep": patch.get("sep", {}),
+            "action_plan": {r: {"rule_id": r, **v} for r, v in patch.get("action_plan", {}).items()},
+            "residual_reviews": patch.get("residual_reviews", {}),
         }
-    )
+    ))
 
 
 def run(patch: dict[str, Any] | None = None, ctx: RunContext = CTX):
